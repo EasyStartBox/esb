@@ -14,12 +14,19 @@ jobs:
       - name: Checkout esb repository
         uses: actions/checkout@v3
 
-      # Step 2: 克隆 kejilion/sh 仓库
+      # Step 2: 清理目标目录（如果存在）
+      - name: Clean target directory
+        run: |
+          if [ -d "./kejilion/sh" ]; then
+            rm -rf ./kejilion/sh
+          fi
+
+      # Step 3: 克隆 kejilion/sh 仓库
       - name: Clone kejilion/sh repository
         run: |
           git clone https://github.com/kejilion/sh.git ./kejilion/sh
 
-      # Step 3: 添加并提交到 EasyStartBox/esb
+      # Step 4: 添加并提交到 EasyStartBox/esb
       - name: Push changes to esb repository
         run: |
           git config --global user.name "github-actions[bot]"
