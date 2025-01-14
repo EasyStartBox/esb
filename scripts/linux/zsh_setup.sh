@@ -27,13 +27,13 @@ OH_MY_ZSH_DIR="$HOME/.oh-my-zsh"
 ZSH_CUSTOM="${OH_MY_ZSH_DIR}/custom"
 
 # 备份文件
-backup_file() {
-  local file="$1"
-  if [ -f "$file" ]; then
-    mv "$file" "${file}.bak_$(date +%s)"
-    info "$file 已备份为 ${file}.bak_$(date +%s)"
-  fi
-}
+# backup_file() {
+#   local file="$1"
+#   if [ -f "$file" ]; then
+#     mv "$file" "${file}.bak_$(date +%s)"
+#     info "$file 已备份为 ${file}.bak_$(date +%s)"
+#   fi
+# }
 
 # 安装插件或主题函数
 install_plugin_or_theme() {
