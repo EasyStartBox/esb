@@ -26,15 +26,6 @@ error() {
 OH_MY_ZSH_DIR="$HOME/.oh-my-zsh"
 ZSH_CUSTOM="${OH_MY_ZSH_DIR}/custom"
 
-# 备份文件
-# backup_file() {
-#   local file="$1"
-#   if [ -f "$file" ]; then
-#     mv "$file" "${file}.bak_$(date +%s)"
-#     info "$file 已备份为 ${file}.bak_$(date +%s)"
-#   fi
-# }
-
 # 安装插件或主题函数
 install_plugin_or_theme() {
   local name="$1"
@@ -83,7 +74,6 @@ if [[ "$choice" == "1" ]]; then
 
   # 配置 Zsh (.zshrc)
   info "配置 Zsh..."
-  backup_file "$HOME/.zshrc"
   cat << 'EOF' > "$HOME/.zshrc"
 # 设置 Oh My Zsh 路径
 export ZSH="$HOME/.oh-my-zsh"
@@ -113,7 +103,6 @@ EOF
 
   # 配置 Powerlevel10k (.p10k.zsh)
   info "配置 Powerlevel10k..."
-  backup_file "$HOME/.p10k.zsh"
   cat << 'EOF' > "$HOME/.p10k.zsh"
 # Powerlevel10k config
 POWERLEVEL9K_MODE='nerdfont-complete'
