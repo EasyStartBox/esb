@@ -196,9 +196,6 @@ gl_orange="\033[1;33m"  # 橙色（通常用黄色近似表示）
 gl_reset="\033[0m"      # 重置颜色
 
 
-source "$DOWNLOAD_DIR/patch_kejilion_update.sh"
-source "$DOWNLOAD_DIR/patch_kejilion_sh.sh"
-
 
 
 # 按顺序加载模块
@@ -215,5 +212,10 @@ load_modules_core(){
 
 }
 load_modules_core
+
+source "$DOWNLOAD_DIR/patch_kejilion_update.sh"
+source "$DOWNLOAD_DIR/patch_kejilion_sh.sh"
+
+
 
 log "脚本执行完毕"
