@@ -101,18 +101,65 @@ if [ -f "$HOME/.p10k.zsh" ]; then
 fi
 EOF
 
-  # 配置 Powerlevel10k (.p10k.zsh)
+#   # 配置 Powerlevel10k (.p10k.zsh)
+#   info "配置 Powerlevel10k..."
+#   cat << 'EOF' > "$HOME/.p10k.zsh"
+# # Powerlevel10k config
+# POWERLEVEL9K_MODE='nerdfont-complete'
+
+# # 左侧提示符元素
+# POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(os_icon user dir vcs)
+
+# # 右侧提示符元素
+# POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status background_jobs battery time)
+# EOF
+
+  # 配置 Powerlevel10k (.p10k.zsh) (样式二)
   info "配置 Powerlevel10k..."
   cat << 'EOF' > "$HOME/.p10k.zsh"
 # Powerlevel10k config
 POWERLEVEL9K_MODE='nerdfont-complete'
 
 # 左侧提示符元素
-POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(os_icon user dir vcs)
+# 显示 OS 图标、用户名和主机名、当前目录、Git 分支及状态
+POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(
+  os_icon        # 操作系统图标
+  user           # 当前用户
+  host           # 主机名
+  dir            # 当前目录
+  vcs            # Git 状态 (如分支、提交等)
+)
 
 # 右侧提示符元素
-POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status background_jobs battery time)
+# 显示命令状态、运行时间、电池状态、时间等
+POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(
+  status         # 上一个命令的退出状态
+  command_execution_time  # 命令执行时间
+  background_jobs  # 后台任务数
+  battery         # 电池状态
+  time            # 当前时间
+)
+
+# 配色设置
+POWERLEVEL9K_OS_ICON_FOREGROUND='202'   # 设置操作系统图标颜色
+POWERLEVEL9K_TIME_FOREGROUND='45'      # 设置时间显示颜色
+POWERLEVEL9K_USER_ICON='\uF415 '       # 使用自定义用户图标 (猫)
+POWERLEVEL9K_HOST_ICON='\uF109 '       # 自定义主机图标 (屏幕)
+
+# 额外设置
+POWERLEVEL9K_SHORTEN_DIR_LENGTH=3      # 限制目录显示深度
+POWERLEVEL9K_SHORTEN_STRATEGY="truncate_to_unique"  # 缩短路径策略
+POWERLEVEL9K_PROMPT_ADD_NEWLINE=true   # 每次提示符后自动换行
+POWERLEVEL9K_MULTILINE_FIRST_PROMPT_PREFIX="%F{242}╭─%f"  # 多行提示符上部分
+POWERLEVEL9K_MULTILINE_LAST_PROMPT_PREFIX="%F{242}╰─%f"   # 多行提示符下部分
+POWERLEVEL9K_VCS_MAX_SYNC_LATENCY=5    # 提高 Git 状态同步的速度
+
+# 如果有配置文件，加载它
+if [ -f "$HOME/.p10k.zsh" ]; then
+  source "$HOME/.p10k.zsh"
+fi
 EOF
+
 
   info "请确保安装支持 Nerd Fonts 的字体（如 MesloLGS NF）以获得最佳效果！"
 
