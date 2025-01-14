@@ -41,7 +41,7 @@ mkdir -p "$DOWNLOAD_DIR"
 DEPENDENCIES=(
     "sh_main.sh|https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/patch_sh/sh_main.sh"
     "kejilion.sh|https://raw.githubusercontent.com/EasyStartBox/esb/main/kejilion/sh/kejilion.sh"
-    "k_info.sh|https://raw.githubusercontent.com/washsky/sh-of-kjlion/washsky-develop/scripts/linux/k_info.sh"
+    #"k_info.sh|https://raw.githubusercontent.com/washsky/sh-of-kjlion/washsky-develop/scripts/linux/k_info.sh"
     "config.yml|https://raw.githubusercontent.com/EasyStartBox/esb/main/config/patch_sh/config.yml"  # 配置文件
 )
 
@@ -98,35 +98,54 @@ washsky_add_kk() {
     # 检查脚本文件是否存在
     log "检查脚本文件是否存在"
     SCRIPT_PATH="$DOWNLOAD_DIR/sh_main.sh"
+
     if [ ! -f "$SCRIPT_PATH" ]; then
         echo "脚本文件不存在: $SCRIPT_PATH"
-        log "检查脚本文件存在退出"
+        log "检查脚本文件不存在退出"
         exit 1
     fi
+    log "脚本文件存在：$SCRIPT_PATH"
 
-    # 目标目录，通常是 /usr/local/bin
+    # 目标目录
     TARGET_DIR="/usr/local/bin"
     COMMAND_NAME="kk" # 最终的命令名称
 
-    # 如果目标目录已有同名文件或链接，先删除它
+    # 检查是否有同名文件或符号链接
     if [ -f "$TARGET_DIR/$COMMAND_NAME" ] || [ -L "$TARGET_DIR/$COMMAND_NAME" ]; then
         echo "目标目录已有同名文件或符号链接，正在删除..."
-        sudo rm -f "$TARGET_DIR/$COMMAND_NAME"  # 强制删除
+        log "目标目录已有同名文件或符号链接，正在删除：$TARGET_DIR/$COMMAND_NAME"
+        sudo rm -f "$TARGET_DIR/$COMMAND_NAME"
     fi
 
-    # 创建符号链接到目标目录，命名为 kk
-    sudo ln -s "$SCRIPT_PATH" "$TARGET_DIR/$COMMAND_NAME"
-    echo "已创建符号链接：$TARGET_DIR/$COMMAND_NAME"
-    log "已创建符号链接：$TARGET_DIR/$COMMAND_NAME"
+    # 创建符号链接
+    log "创建符号链接 $TARGET_DIR/$COMMAND_NAME -> $SCRIPT_PATH"
+    ln -s "$SCRIPT_PATH" "$TARGET_DIR/$COMMAND_NAME"
+    if [ $? -eq 0 ]; then
+        log "符号链接创建成功：$TARGET_DIR/$COMMAND_NAME"
+        echo "符号链接已创建：$TARGET_DIR/$COMMAND_NAME"
+    else
+        log "符号链接创建失败：$TARGET_DIR/$COMMAND_NAME"
+        echo "符号链接创建失败，请检查权限或路径问题。"
+        exit 1
+    fi
 
     # 确保脚本具有可执行权限
-    sudo chmod +x "$SCRIPT_PATH"
-    echo "已确保脚本具有可执行权限：$SCRIPT_PATH"
-    log "已确保脚本具有可执行权限：$SCRIPT_PATH"
+    log "确保脚本具有可执行权限：$SCRIPT_PATH"
+    chmod +x "$SCRIPT_PATH"
+    if [ $? -eq 0 ]; then
+        log "已确保脚本具有可执行权限：$SCRIPT_PATH"
+        echo "脚本已具有可执行权限：$SCRIPT_PATH"
+    else
+        log "无法确保脚本具有可执行权限：$SCRIPT_PATH"
+        echo "设置脚本可执行权限失败，请检查权限。"
+        exit 1
+    fi
 
-    # 提示用户执行
+    # 提示用户
     echo "符号链接已成功创建，现在可以通过 'kk' 命令直接运行该脚本。"
+    log "符号链接创建完成，可以通过 'kk' 命令运行该脚本。"
 }
+
 
 
 washsky_add_kk
@@ -149,12 +168,7 @@ load_modules() {
 }
 
 
-# 按顺序加载模块
-# echo "加载依赖模块..."
-log "加载核心初始化模块"
-# 1. 加载核心初始化模块
-source "$DOWNLOAD_DIR/kejilion.sh"
-log "加载核心初始化模块完毕"
+
 # 测试里面是否有init_env函数
 # if declare -f init_env > /dev/null; then
 #     echo "运行初始化逻辑..."
@@ -171,6 +185,7 @@ log "加载核心初始化模块完毕"
 
 
 
+
 # === 定义更新函数 ===
 kejilion_update() {
     send_stats "脚本更新"
@@ -179,11 +194,11 @@ kejilion_update() {
 
     echo "更新日志"
     echo "------------------------"
-    echo "全部日志: ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/sh_log.txt"
-    echo "------------------------"
 
-    # 显示最新的 35 行更新日志
-    curl -s ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/sh_log.txt | tail -n 35
+	echo "全部日志: ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/kejilion_sh_log.txt"
+	echo "------------------------"
+
+	curl -s ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/kejilion_sh_log.txt | tail -n 35
 
     # 定义远程 config.yml 的 URL
     local remote_config_url="https://raw.githubusercontent.com/EasyStartBox/esb/main/config/patch_sh/config.yml"
@@ -374,7 +389,7 @@ kejilion_sh() {
         "linux_cluster"
         "kejilion_Affiliates"
         "send_stats '幻兽帕鲁开服脚本' ; cd ~; curl -sS -O ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/palworld.sh ; chmod +x palworld.sh ; ./palworld.sh"
-        "patch_sh_update"
+        "kejilion_update"
         "exit"  # 修改这里，从 "clear ; exit" 到 "exit"
     )
 
@@ -524,7 +539,20 @@ kejilion_sh() {
     done
 }
 
-# 1. 加载kejilion_sh()函数后面的脚本
-# source "$DOWNLOAD_DIR/k_info.sh"
+
+# 按顺序加载模块
+# echo "加载依赖模块..."
+log "加载核心初始化模块"
+# 1. 加载核心初始化模块
+load_modules_core(){
+    source "$DOWNLOAD_DIR/kejilion.sh"
+    log "加载核心初始化模块完毕"
+
+    unset -f kejilion_update
+    unset -f kejilion_sh
+
+
+}
+load_modules_core
 
 log "脚本执行完毕"
