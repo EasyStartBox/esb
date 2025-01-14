@@ -227,6 +227,10 @@ CHILD_SCRIPT="$DOWNLOAD_DIR/kejilion.sh"
 # 删除函数 kejilion_update 的定义
 sed -i '/^kejilion_update()/,/^}/d' "$CHILD_SCRIPT"
 sed -i '/^kejilion_sh()/,/^}/d' "$CHILD_SCRIPT"
+sed -i '/^send_stats()/,/^}/d' "$CHILD_SCRIPT"
+sed -i '/^UserLicenseAgreement()/,/^}/d' "$CHILD_SCRIPT"
+sed -i '/^CheckFirstRun_false()/,/^}/d' "$CHILD_SCRIPT"
+
 
 # 删除变量 sh_v 的定义
 sed -i '/^sh_v=/d' "$CHILD_SCRIPT"
