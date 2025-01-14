@@ -39,7 +39,7 @@ mkdir -p "$DOWNLOAD_DIR"
 
 # 定义依赖脚本和配置文件的 URL 和文件名
 DEPENDENCIES=(
-    "sh_sh_main.sh|https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/patch_sh/sh_sh_main.sh"
+    "sh_main.sh|https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/patch_sh/sh_main.sh"
     "kejilion.sh|https://raw.githubusercontent.com/kejilion/sh/kejilion.sh"
     #"k_info.sh|https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/k_info.sh"
     "config.yml|https://raw.githubusercontent.com/EasyStartBox/esb/main/config/patch_sh/config.yml"  # 配置文件
@@ -97,7 +97,7 @@ sh_v=$(echo "$version_format" | sed "s/{major}/$major/" | sed "s/{minor}/$minor/
 washsky_add_kk(){
     # 检查脚本文件是否存在
     log "检查脚本文件是否存在"
-    SCRIPT_PATH="$DOWNLOAD_DIR/sh_sh_main.sh"
+    SCRIPT_PATH="$DOWNLOAD_DIR/sh_main.sh"
     if [ ! -f "$SCRIPT_PATH" ]; then
         echo "脚本文件不存在: $SCRIPT_PATH"
         log "检查脚本文件存在退出"
