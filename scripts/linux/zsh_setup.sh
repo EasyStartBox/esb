@@ -125,7 +125,7 @@ POWERLEVEL9K_MODE='nerdfont-complete'
 POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(
   os_icon        # 操作系统图标
   user           # 当前用户
-  host           # 主机名
+  #host           # 主机名
   dir            # 当前目录
   vcs            # Git 状态 (如分支、提交等)
 )
