@@ -8,11 +8,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: 检出代码
+      # Step 1: 检出当前仓库代码并确保完整历史
       - name: Checkout this repository
         uses: actions/checkout@v3
         with:
           ref: main  # 替换为实际分支名
+          fetch-depth: 0  # 拉取完整提交历史
 
       # Step 2: 检查是否存在提交历史
       - name: Check for previous commits
