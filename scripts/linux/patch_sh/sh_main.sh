@@ -116,7 +116,7 @@ washsky_add_kk() {
     if [ -f "$TARGET_DIR/$COMMAND_NAME" ] || [ -L "$TARGET_DIR/$COMMAND_NAME" ]; then
         echo "目标目录已有同名文件或符号链接，正在删除..."
         log "目标目录已有同名文件或符号链接，正在删除：$TARGET_DIR/$COMMAND_NAME"
-        sudo rm -f "$TARGET_DIR/$COMMAND_NAME"
+        rm -f "$TARGET_DIR/$COMMAND_NAME"
     fi
 
     # 创建符号链接
