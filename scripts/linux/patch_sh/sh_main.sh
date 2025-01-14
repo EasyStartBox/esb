@@ -94,7 +94,7 @@ sh_v=$(echo "$version_format" | sed "s/{major}/$major/" | sed "s/{minor}/$minor/
 
 
 
-washsky_add_kk(){
+washsky_add_kk() {
     # 检查脚本文件是否存在
     log "检查脚本文件是否存在"
     SCRIPT_PATH="$DOWNLOAD_DIR/sh_main.sh"
@@ -106,35 +106,28 @@ washsky_add_kk(){
 
     # 目标目录，通常是 /usr/local/bin
     TARGET_DIR="/usr/local/bin"
+    COMMAND_NAME="kk" # 最终的命令名称
 
-    # 获取脚本的基本文件名，例如 sh_main.sh
-    SCRIPT_NAME=$(basename "$SCRIPT_PATH")
-
-    # 如果目标目录已有同名文件，先删除它，然后重新创建符号链接
-    if [ -f "$TARGET_DIR/$SCRIPT_NAME" ]; then
-        echo "目标目录已有同名文件，正在删除并重新创建符号链接..."
-        rm -f "$TARGET_DIR/$SCRIPT_NAME"  # 强制删除已有的文件
+    # 如果目标目录已有同名文件或链接，先删除它
+    if [ -f "$TARGET_DIR/$COMMAND_NAME" ] || [ -L "$TARGET_DIR/$COMMAND_NAME" ]; then
+        echo "目标目录已有同名文件或符号链接，正在删除..."
+        sudo rm -f "$TARGET_DIR/$COMMAND_NAME"  # 强制删除
     fi
 
-    # 创建符号链接到目标目录
-    ln -s "$SCRIPT_PATH" "$TARGET_DIR/$SCRIPT_NAME"
-    echo "已创建符号链接：$TARGET_DIR/$SCRIPT_NAME"
-
-    log "已创建符号链接：$TARGET_DIR/$SCRIPT_NAME"
-
+    # 创建符号链接到目标目录，命名为 kk
+    sudo ln -s "$SCRIPT_PATH" "$TARGET_DIR/$COMMAND_NAME"
+    echo "已创建符号链接：$TARGET_DIR/$COMMAND_NAME"
+    log "已创建符号链接：$TARGET_DIR/$COMMAND_NAME"
 
     # 确保脚本具有可执行权限
     sudo chmod +x "$SCRIPT_PATH"
     echo "已确保脚本具有可执行权限：$SCRIPT_PATH"
     log "已确保脚本具有可执行权限：$SCRIPT_PATH"
 
-    # 可选：为 'kk' 创建一个别名，前提是你希望通过 'kk' 来执行该脚本
-    echo "alias kk='$TARGET_DIR/$SCRIPT_NAME'" >> ~/.bashrc
-    echo "已在 ~/.bashrc 中添加 alias kk='$TARGET_DIR/$SCRIPT_NAME'"
-
-    # 提示用户重新加载配置
-    source ~/.bashrc
+    # 提示用户执行
+    echo "符号链接已成功创建，现在可以通过 'kk' 命令直接运行该脚本。"
 }
+
 
 washsky_add_kk
 
@@ -158,9 +151,10 @@ load_modules() {
 
 # 按顺序加载模块
 # echo "加载依赖模块..."
-
+log "加载核心初始化模块"
 # 1. 加载核心初始化模块
 source "$DOWNLOAD_DIR/kejilion.sh"
+log "加载核心初始化模块完毕"
 # 测试里面是否有init_env函数
 # if declare -f init_env > /dev/null; then
 #     echo "运行初始化逻辑..."
