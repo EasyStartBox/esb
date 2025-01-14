@@ -1,9 +1,12 @@
-name: Clone kejilion/sh to esb
+name: Sync kejilion/sh to esb
 
+# 定时触发和手动触发
 on:
-  push:
-    branches:
-      - main  # 监听 EasyStartBox/esb 仓库的 main 分支的提交
+  # 定时任务：每天凌晨 1 点触发
+  schedule:
+    - cron: '0 1 * * *'
+  # 手动触发
+  workflow_dispatch:
 
 jobs:
   clone-and-sync:
@@ -26,17 +29,18 @@ jobs:
         run: |
           git clone https://github.com/kejilion/sh.git ./kejilion/sh
 
-      # Step 4: 添加并提交到 EasyStartBox/esb
+      # Step 4: 将文件复制到 esb 仓库
+      - name: Copy files from kejilion/sh to esb
+        run: |
+          cp -r ./kejilion/sh/* .
+
+      # Step 5: 提交更改并推送到 esb 仓库
       - name: Push changes to esb repository
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add .
-          git commit -m "Synced kejilion/sh repository"
+          git commit -m "Synced kejilion/sh repository to esb"
           git push
         env:
-          # 使用 GITHUB_TOKEN 推送更改
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
-          
