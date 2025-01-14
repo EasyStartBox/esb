@@ -1,5 +1,8 @@
 #!/bin/bash
 
+
+cd
+
 # 把它加入顶部使每次运行都删除它
 rm -rf /tmp/patch_sh_update
 
@@ -22,7 +25,7 @@ log "Hello, World! 命令已执行"
 # 默认存放目录（如果用户未指定目录）
 DEFAULT_DIR="$HOME/.patch_sh"
 DOWNLOAD_DIR="${1:-$DEFAULT_DIR}"  # 如果提供参数，则使用参数作为目录；否则使用默认目录。
-
+rm -rf "$DOWNLOAD_DIR"
 # === 可选：设置 trap 清理临时文件或中断处理 ===
 cleanup() {
     echo "清理临时资源..."
@@ -202,19 +205,35 @@ gl_reset="\033[0m"      # 重置颜色
 # echo "加载依赖模块..."
 log "加载核心初始化模块"
 # 1. 加载核心初始化模块
-load_modules_core(){
-    source "$DOWNLOAD_DIR/kejilion.sh"
-    log "加载核心初始化模块完毕"
+# load_modules_core(){
+#     source "$DOWNLOAD_DIR/kejilion.sh"
+#     log "加载核心初始化模块完毕"
 
-    unset -f kejilion_update
-    unset -f kejilion_sh
-    unset sh_v
+#     unset -f kejilion_update
+#     unset -f kejilion_sh
+#     unset sh_v
 
-}
-load_modules_core
+# }
+# load_modules_core
 
 source "$DOWNLOAD_DIR/patch_kejilion_update.sh"
 source "$DOWNLOAD_DIR/patch_kejilion_sh.sh"
+
+
+
+# 定义子脚本路径
+CHILD_SCRIPT="$DOWNLOAD_DIR/kejilion.sh"
+
+# 删除函数 kejilion_update 的定义
+sed -i '/^kejilion_update()/,/^}/d' "$CHILD_SCRIPT"
+sed -i '/^kejilion_sh()/,/^}/d' "$CHILD_SCRIPT"
+
+# 删除变量 sh_v 的定义
+sed -i '/^sh_v=/d' "$CHILD_SCRIPT"
+
+# 加载修改后的子脚本
+source "$CHILD_SCRIPT"
+
 
 
 
