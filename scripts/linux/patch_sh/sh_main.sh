@@ -39,7 +39,7 @@ mkdir -p "$DOWNLOAD_DIR"
 
 # 定义依赖脚本和配置文件的 URL 和文件名
 DEPENDENCIES=(
-    "sh_main.sh|https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/patch_sh/sh_main.sh"
+    "sh_sh_main.sh|https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/patch_sh/sh_sh_main.sh"
     "kejilion.sh|https://raw.githubusercontent.com/kejilion/sh/kejilion.sh"
     #"k_info.sh|https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/k_info.sh"
     "config.yml|https://raw.githubusercontent.com/EasyStartBox/esb/main/config/patch_sh/config.yml"  # 配置文件
@@ -97,7 +97,7 @@ sh_v=$(echo "$version_format" | sed "s/{major}/$major/" | sed "s/{minor}/$minor/
 washsky_add_kk(){
     # 检查脚本文件是否存在
     log "检查脚本文件是否存在"
-    SCRIPT_PATH="$DOWNLOAD_DIR/sh_main.sh"
+    SCRIPT_PATH="$DOWNLOAD_DIR/sh_sh_main.sh"
     if [ ! -f "$SCRIPT_PATH" ]; then
         echo "脚本文件不存在: $SCRIPT_PATH"
         log "检查脚本文件存在退出"
@@ -107,7 +107,7 @@ washsky_add_kk(){
     # 目标目录，通常是 /usr/local/bin
     TARGET_DIR="/usr/local/bin"
 
-    # 获取脚本的基本文件名，例如 main.sh
+    # 获取脚本的基本文件名，例如 sh_main.sh
     SCRIPT_NAME=$(basename "$SCRIPT_PATH")
 
     # 如果目标目录已有同名文件，先删除它，然后重新创建符号链接
@@ -283,7 +283,7 @@ kejilion_update() {
                 cp -rf "$temp_dir"/* "$DOWNLOAD_DIR"
 
                 # 赋予执行权限
-                chmod +x "$DOWNLOAD_DIR/main.sh"
+                chmod +x "$DOWNLOAD_DIR/sh_main.sh"
 
                 # 备份当前脚本
                 if [ -f "/usr/local/bin/kk" ]; then
@@ -291,8 +291,8 @@ kejilion_update() {
                 fi
 
                 # 更新目标脚本
-                echo "更新脚本 main.sh 到 /usr/local/bin/kk ..."
-                cp -f "$DOWNLOAD_DIR/main.sh" /usr/local/bin/kk
+                echo "更新脚本 sh_main.sh 到 /usr/local/bin/kk ..."
+                cp -f "$DOWNLOAD_DIR/sh_main.sh" /usr/local/bin/kk
 
                 # 更新本地的 tag-config.yml
                 cp "$temp_config_file" "$local_config_file"
