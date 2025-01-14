@@ -40,8 +40,8 @@ mkdir -p "$DOWNLOAD_DIR"
 # 定义依赖脚本和配置文件的 URL 和文件名
 DEPENDENCIES=(
     "sh_main.sh|https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/patch_sh/sh_main.sh"
-    "kejilion.sh|https://raw.githubusercontent.com/kejilion/sh/kejilion.sh"
-    #"k_info.sh|https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/k_info.sh"
+    "kejilion.sh|https://raw.githubusercontent.com/EasyStartBox/esb/main/kejilion/sh/kejilion.sh"
+    "k_info.sh|https://raw.githubusercontent.com/washsky/sh-of-kjlion/washsky-develop/scripts/linux/k_info.sh"
     "config.yml|https://raw.githubusercontent.com/EasyStartBox/esb/main/config/patch_sh/config.yml"  # 配置文件
 )
 
@@ -185,11 +185,11 @@ kejilion_update() {
 
     echo "更新日志"
     echo "------------------------"
-    echo "全部日志: ${gh_proxy}https://raw.githubusercontent.com/EasyStartBox/esb/main/sh_log.txt"
+    echo "全部日志: ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/sh_log.txt"
     echo "------------------------"
 
     # 显示最新的 35 行更新日志
-    curl -s ${gh_proxy}https://raw.githubusercontent.com/EasyStartBox/esb/main/sh_log.txt | tail -n 35
+    curl -s ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/sh_log.txt | tail -n 35
 
     # 定义远程 config.yml 的 URL
     local remote_config_url="https://raw.githubusercontent.com/EasyStartBox/esb/main/config/patch_sh/config.yml"
