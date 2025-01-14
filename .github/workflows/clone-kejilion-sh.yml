@@ -1,0 +1,20 @@
+name: Clone kejilion/sh on Push
+
+on:
+  push:
+    branches:
+      - main  # 监听 main 分支的提交，你可以修改为其他分支
+
+jobs:
+  clone-repo:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: 检出当前仓库代码
+    - name: Checkout the repository
+      uses: actions/checkout@v3
+
+    # Step 2: 克隆目标仓库到指定目录
+    - name: Clone kejilion/sh repository
+      run: |
+        git clone https://github.com/kejilion/sh.git ./kejilion/sh
