@@ -1,7 +1,6 @@
 name: Rollback to previous commit
 
 on:
-  # 手动触发
   workflow_dispatch:
 
 jobs:
@@ -9,15 +8,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: 检出当前仓库代码
+      # Step 1: 检出代码
       - name: Checkout this repository
         uses: actions/checkout@v3
+        with:
+          ref: main  # 替换为实际分支名
 
-      # Step 2: 回退到上一次提交
-      - name: Revert to previous commit
+      # Step 2: 检查是否存在提交历史
+      - name: Check for previous commits
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          if git rev-parse HEAD >/dev/null 2>&1; then
+            echo "Found previous commits, proceeding to reset."
+          else
+            echo "No commit history found. Exiting rollback process."
+            exit 1
+          fi
+
+      # Step 3: 回退到上一个提交
+      - name: Revert to previous commit
+        if: success()
+        run: |
           git reset --hard HEAD~1
           git push --force
         env:
