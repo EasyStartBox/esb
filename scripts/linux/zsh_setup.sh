@@ -144,6 +144,9 @@ elif [[ "$choice" == "2" ]]; then
   info "删除 Zsh 配置文件..."
   rm -f "$HOME/.zshrc" "$HOME/.p10k.zsh"
 
+  info "删除 Zsh 补全和历史记录文件..."
+  rm -f "$HOME/.zcompdump-"* "$HOME/.zsh_history"
+
   info "卸载 Zsh..."
   apt remove --purge -y zsh || error "卸载 Zsh 失败！"
 
