@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # === 定义更新函数 ===
+# === 定义更新函数 ===
 kejilion_update() {
     # 解析传递的参数
     local FORCE_UPDATE=false
@@ -167,17 +168,19 @@ kejilion_update() {
                     ;;
             esac
         fi
-    elif [ "$FORCE_UPDATE" = false ] && [ "$compare_result" -eq 1 ]; then
-        echo -e "${gl_lv}本地版本高于远程版本，可能存在问题。${gl_bai}"
-        log "本地版本高于远程版本，建议检查。"
-        # 清理临时配置文件
-        rm -f "$temp_config_file"
-        log "清理临时配置文件 $temp_config_file."
-        return
+    elif [ "$compare_result" -eq 2 ]; then
+        if [ "$FORCE_UPDATE" = false ]; then
+            echo -e "${gl_lv}本地版本高于远程版本，可能存在问题。${gl_bai}"
+            log "本地版本高于远程版本，建议检查。"
+            # 清理临时配置文件
+            rm -f "$temp_config_file"
+            log "清理临时配置文件 $temp_config_file."
+            return
+        fi
     fi
 
     # 如果是强制更新或发现新版本，则执行更新逻辑
-    if [ "$FORCE_UPDATE" = true ] || [ "$compare_result" -ne 0 ]; then
+    if [ "$FORCE_UPDATE" = true ] || [ "$compare_result" -eq 1 ]; then
         echo "准备更新脚本..."
         if [ "$FORCE_UPDATE" = true ]; then
             echo -e "当前版本 $local_sh_v        最新版本 ${gl_huang}$remote_sh_v${gl_bai} (强制更新)"
@@ -284,4 +287,3 @@ kejilion_update() {
     rm -f "$temp_config_file"
     log "清理临时配置文件 $temp_config_file."
 }
-
