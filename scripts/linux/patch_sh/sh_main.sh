@@ -187,6 +187,10 @@ load_modules() {
 
 
 
+send_stats() {
+  # 这里可以什么都不做，避免函数不存在的错误
+  return 0
+}
 
 
 
