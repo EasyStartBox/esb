@@ -9,4 +9,8 @@ release_notes: |
   - 修复了一些已知问题。
   - 优化了性能表现。
   - 新增功能 A 和功能 B。
+
+
+# kk
+custom_command_wakeup: kk
   
