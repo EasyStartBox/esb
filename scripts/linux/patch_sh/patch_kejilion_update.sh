@@ -1,9 +1,7 @@
-# 
+#!/bin/bash
 
 
-
-
-# 定义更新函数
+# === 定义更新函数 ===
 kejilion_update() {
     send_stats "脚本更新"
     cd ~
@@ -11,9 +9,11 @@ kejilion_update() {
 
     echo "更新日志"
     echo "------------------------"
-    echo "全部日志: ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/kejilion_sh_log.txt"
-    echo "------------------------"
-    curl -s ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/kejilion_sh_log.txt | tail -n 35
+
+	echo "全部日志: ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/kejilion_sh_log.txt"
+	echo "------------------------"
+
+	curl -s ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/kejilion_sh_log.txt | tail -n 35
 
     # 定义远程 config.yml 的 URL
     local remote_config_url="https://raw.githubusercontent.com/EasyStartBox/esb/main/config/patch_sh/config.yml"
@@ -88,6 +88,7 @@ kejilion_update() {
                 # 重新创建临时目录
                 mkdir -p "$temp_dir"
 
+
                 # 下载所有依赖文件到临时目录
                 echo "开始下载所有依赖文件到临时目录 $temp_dir..."
                 download_dependencies "$temp_dir"
@@ -103,7 +104,6 @@ kejilion_update() {
 
                 # 更新所有依赖文件到目标目录
                 echo "开始将更新文件从临时目录复制到 $DOWNLOAD_DIR ..."
-
                 cp -rf "$temp_dir"/* "$DOWNLOAD_DIR"
 
                 # 赋予执行权限
@@ -120,9 +120,6 @@ kejilion_update() {
 
                 # 更新本地的 tag-config.yml
                 cp "$temp_config_file" "$local_config_file"
-
-                # 重新创建符号链接，确保它始终指向最新版本
-                ln -sf "$DOWNLOAD_DIR/sh_main.sh" /usr/local/bin/kk
 
                 # 使用 exec 重新执行脚本，替代当前进程
                 exec /usr/local/bin/kk
