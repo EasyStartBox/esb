@@ -1,7 +1,23 @@
 #!/bin/bash
 
 # === 定义更新函数 ===
+
+
+# 正常更新（仅在有新版本时更新）
+# kejilion_update
+
+# 强制更新（无论版本是否相同，均执行更新）
+# kejilion_update force
+
+
+
 kejilion_update() {
+    # 检查是否传递了 "force" 参数
+    local FORCE_UPDATE=false
+    if [ "$1" == "force" ]; then
+        FORCE_UPDATE=true
+    fi
+
     # 确保全局变量已定义
     if [ -z "$DOWNLOAD_DIR" ] || [ -z "$DEPENDENCIES" ]; then
         echo "必要的全局变量未定义。"
@@ -112,13 +128,23 @@ kejilion_update() {
     version_compare "$remote_sh_v" "$local_sh_v"
     compare_result=$?
 
-    if [ $compare_result -eq 0 ]; then
+    if [ "$FORCE_UPDATE" = true ]; then
+        echo -e "${gl_lv}强制更新脚本。${gl_bai}"
+        log "强制更新脚本。"
+    elif [ $compare_result -eq 0 ]; then
         echo -e "${gl_lv}你已经是最新版本！${gl_huang}v$remote_sh_v${gl_bai}"
         log "脚本已经是最新版本 v$remote_sh_v，无需更新。"
-    else
+        # 清理临时配置文件
+        rm -f "$temp_config_file"
+        log "清理临时配置文件 $temp_config_file."
+        return
+    fi
+
+    # 如果是强制更新或发现新版本，则执行更新逻辑
+    if [ "$FORCE_UPDATE" = true ] || [ $compare_result -ne 0 ]; then
         echo "发现新版本！"
-        if [ $compare_result -eq 1 ]; then
-            echo -e "当前版本 v$local_sh_v        最新版本 ${gl_huang}v$remote_sh_v${gl_bai}"
+        if [ "$FORCE_UPDATE" = true ]; then
+            echo -e "当前版本 v$local_sh_v        最新版本 ${gl_huang}v$remote_sh_v${gl_bai} (强制更新)"
         else
             echo -e "当前版本 v$local_sh_v        最新版本 ${gl_huang}v$remote_sh_v${gl_bai}"
         fi
