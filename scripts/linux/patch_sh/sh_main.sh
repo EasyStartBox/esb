@@ -1,4 +1,3 @@
-# #!/bin/bash
 
 # # === 权限检查 ===
 # if [ "$EUID" -ne 0 ]; then
@@ -348,10 +347,11 @@
 
 
 
-
-
-
 #!/bin/bash
+
+# === 设置选项 ===
+set -euo pipefail
+IFS=$'\n\t'
 
 # === 权限检查 ===
 if [ "$EUID" -ne 0 ]; then
@@ -408,8 +408,8 @@ DEPENDENCIES=(
 download_dependencies() {
     local download_dir="$1"
     for dep in "${DEPENDENCIES[@]}"; do
-        local FILENAME=$(echo "$dep" | cut -d'|' -f1)
-        local URL=$(echo "$dep" | cut -d'|' -f2)
+        local FILENAME="${dep%%|*}"
+        local URL="${dep#*|}"
         if [ ! -f "$download_dir/$FILENAME" ]; then
             echo "正在下载 $FILENAME 到 $download_dir..."
             if ! curl -s -o "$download_dir/$FILENAME" "$URL"; then
@@ -431,7 +431,7 @@ create_custom_command() {
 
     # 检查命令名称是否提供
     if [ -z "$command_name" ]; then
-        echo "未提供命令名称。使用方法: add-command"
+        echo "未提供命令名称。使用方法: add-command <命令名称>"
         exit 1
     fi
 
@@ -601,18 +601,27 @@ list_custom_commands() {
 # === 脚本参数处理 ===
 
 # 如果第一个参数是管理命令，则处理并退出
-if [[ "$1" == "add-command" || "$1" == "remove-command" || "$1" == "list-commands" || "$1" == "uninstall" ]]; then
-    # 设置下载目录为默认目录，但不删除它
+if [[ $# -ge 1 && ("$1" == "add-command" || "$1" == "remove-command" || "$1" == "list-commands" || "$1" == "uninstall") ]]; then
+    # 管理命令时，不删除 DOWNLOAD_DIR
     DEFAULT_DIR="$HOME/.patch_sh"
     DOWNLOAD_DIR="$DEFAULT_DIR"
 
     case "$1" in
         add-command)
-            read -p "请输入自定义命令名称: " new_command
+            # 如果提供了第二个参数，则使用它作为命令名称
+            if [[ $# -ge 2 ]]; then
+                new_command="$2"
+            else
+                read -p "请输入自定义命令名称: " new_command
+            fi
             create_custom_command "$new_command"
             ;;
         remove-command)
-            read -p "请输入要移除的自定义命令名称: " del_command
+            if [[ $# -ge 2 ]]; then
+                del_command="$2"
+            else
+                read -p "请输入要移除的自定义命令名称: " del_command
+            fi
             remove_custom_command "$del_command"
             ;;
         list-commands)
