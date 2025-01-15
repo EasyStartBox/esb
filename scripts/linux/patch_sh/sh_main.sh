@@ -184,3 +184,4 @@ sed -i '/^sh_v=/d' "$CHILD_SCRIPT"
 source "$CHILD_SCRIPT"
 
 log "脚本执行完毕"
+# ==
