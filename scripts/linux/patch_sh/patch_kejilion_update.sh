@@ -2,11 +2,21 @@
 
 # === 定义更新函数 ===
 kejilion_update() {
-    # 检查是否传递了 "force" 参数
+    # 解析传递的参数
     local FORCE_UPDATE=false
-    if [ "$1" == "force" ]; then
-        FORCE_UPDATE=true
-    fi
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            force)
+                FORCE_UPDATE=true
+                shift
+                ;;
+            *)
+                echo "未知参数: $1"
+                log "未知参数: $1"
+                exit 1
+                ;;
+        esac
+    done
 
     # 确保全局变量已定义
     if [ -z "$DOWNLOAD_DIR" ] || [ -z "$DEPENDENCIES" ]; then
@@ -119,12 +129,42 @@ kejilion_update() {
     version_compare "$remote_sh_v" "$local_sh_v"
     compare_result=$?
 
-    if [ "$FORCE_UPDATE" = true ]; then
-        echo -e "${gl_lv}强制更新脚本。${gl_bai}"
-        log "强制更新脚本。"
-    elif [ $compare_result -eq 0 ]; then
-        echo -e "${gl_lv}你已经是最新版本！${gl_huang}v$remote_sh_v${gl_bai}"
-        log "脚本已经是最新版本 v$remote_sh_v，无需更新。"
+    if [ "$compare_result" -eq 0 ]; then
+        if [ "$FORCE_UPDATE" = true ]; then
+            echo -e "${gl_lv}强制更新脚本。${gl_bai}"
+            log "强制更新脚本。"
+        else
+            echo -e "${gl_lv}你已经是最新版本！${gl_huang}v$remote_sh_v${gl_bai}"
+            log "脚本已经是最新版本 v$remote_sh_v，无需更新。"
+
+            # 提示用户是否要强制更新
+            read -e -p "是否要强制更新脚本？(Y/N): " user_choice
+            case "$user_choice" in
+                [Yy]* )
+                    FORCE_UPDATE=true
+                    log "用户选择强制更新脚本。"
+                    ;;
+                [Nn]* )
+                    echo "已取消更新。"
+                    log "用户取消了更新。"
+                    # 清理临时配置文件
+                    rm -f "$temp_config_file"
+                    log "清理临时配置文件 $temp_config_file."
+                    return
+                    ;;
+                * )
+                    echo "无效的选择，已取消更新。"
+                    log "用户输入无效，更新已取消。"
+                    # 清理临时配置文件
+                    rm -f "$temp_config_file"
+                    log "清理临时配置文件 $temp_config_file."
+                    return
+                    ;;
+            esac
+        fi
+    elif [ "$FORCE_UPDATE" = false ] && [ "$compare_result" -eq 1 ]; then
+        echo -e "${gl_lv}本地版本高于远程版本，可能存在问题。${gl_bai}"
+        log "本地版本高于远程版本，建议检查。"
         # 清理临时配置文件
         rm -f "$temp_config_file"
         log "清理临时配置文件 $temp_config_file."
@@ -132,8 +172,8 @@ kejilion_update() {
     fi
 
     # 如果是强制更新或发现新版本，则执行更新逻辑
-    if [ "$FORCE_UPDATE" = true ] || [ $compare_result -ne 0 ]; then
-        echo "发现新版本！"
+    if [ "$FORCE_UPDATE" = true ] || [ "$compare_result" -ne 0 ]; then
+        echo "准备更新脚本..."
         if [ "$FORCE_UPDATE" = true ]; then
             echo -e "当前版本 v$local_sh_v        最新版本 ${gl_huang}v$remote_sh_v${gl_bai} (强制更新)"
         else
@@ -142,7 +182,7 @@ kejilion_update() {
         echo "------------------------"
         read -e -p "确定更新脚本吗？(Y/N): " choice
         case "$choice" in
-            [Yy])
+            [Yy]* )
                 clear
 
                 # 获取用户所在国家
@@ -224,11 +264,11 @@ kejilion_update() {
                 echo "更新完成，重新启动脚本..."
                 exec /usr/local/bin/kk
                 ;;
-            [Nn])
-                echo "已取消更新"
+            [Nn]* )
+                echo "已取消更新。"
                 log "用户取消了更新。"
                 ;;
-            *)
+            * )
                 echo "无效的选择，已取消更新。"
                 log "用户输入无效，更新已取消。"
                 ;;
@@ -239,6 +279,9 @@ kejilion_update() {
     rm -f "$temp_config_file"
     log "清理临时配置文件 $temp_config_file."
 }
+
+# === 调用更新函数 ===
+kejilion_update "$@"
 
 
 
