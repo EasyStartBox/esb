@@ -1,16 +1,6 @@
 #!/bin/bash
 
 # === 定义更新函数 ===
-
-
-# 正常更新（仅在有新版本时更新）
-# kejilion_update
-
-# 强制更新（无论版本是否相同，均执行更新）
-# kejilion_update force
-
-
-
 kejilion_update() {
     # 检查是否传递了 "force" 参数
     local FORCE_UPDATE=false
@@ -21,12 +11,13 @@ kejilion_update() {
     # 确保全局变量已定义
     if [ -z "$DOWNLOAD_DIR" ] || [ -z "$DEPENDENCIES" ]; then
         echo "必要的全局变量未定义。"
+        log "必要的全局变量未定义。"
         exit 1
     fi
 
     send_stats "脚本更新"
 
-    cd ~ || { echo "无法切换到主目录。"; exit 1; }
+    cd ~ || { echo "无法切换到主目录。"; log "无法切换到主目录。"; exit 1; }
 
     clear
 
@@ -42,7 +33,7 @@ kejilion_update() {
     # 定义远程 config.yml 的 URL
     local remote_config_url="https://raw.githubusercontent.com/EasyStartBox/esb/main/config/patch_sh/config.yml"
     local local_config_file="$DOWNLOAD_DIR/config.yml"
-    local temp_config_file=$(mktemp /tmp/config.yml.XXXXXX) || { echo "无法创建临时配置文件。"; exit 1; }
+    local temp_config_file=$(mktemp /tmp/config.yml.XXXXXX) || { echo "无法创建临时配置文件。"; log "无法创建临时配置文件。"; exit 1; }
 
     # 下载远程的 config.yml 到临时文件
     if ! curl -s -o "$temp_config_file" "$remote_config_url"; then
@@ -205,17 +196,21 @@ kejilion_update() {
                 chmod +x "$DOWNLOAD_DIR/sh_main.sh" || { echo "无法设置 sh_main.sh 为可执行。"; log "无法设置 sh_main.sh 为可执行。"; rm -rf "$temp_dir"; exit 1; }
                 log "已设置 sh_main.sh 为可执行。"
 
-                # 备份当前脚本
-                if [ -f "/usr/local/bin/kk" ]; then
+                # 备份并重新创建符号链接 /usr/local/bin/kk
+                if [ -L "/usr/local/bin/kk" ]; then
+                    echo "备份当前符号链接 /usr/local/bin/kk 到 /usr/local/bin/kk.bak..."
+                    cp -r "/usr/local/bin/kk" "/usr/local/bin/kk.bak" || { echo "备份符号链接失败。"; log "备份符号链接失败。"; rm -rf "$temp_dir"; exit 1; }
+                    log "备份符号链接 /usr/local/bin/kk 到 /usr/local/bin/kk.bak."
+                elif [ -f "/usr/local/bin/kk" ]; then
                     echo "备份当前脚本 /usr/local/bin/kk 到 /usr/local/bin/kk.bak..."
-                    cp /usr/local/bin/kk /usr/local/bin/kk.bak || { echo "备份当前脚本失败。"; log "备份当前脚本失败。"; rm -rf "$temp_dir"; exit 1; }
+                    cp "/usr/local/bin/kk" "/usr/local/bin/kk.bak" || { echo "备份当前脚本失败。"; log "备份当前脚本失败。"; rm -rf "$temp_dir"; exit 1; }
                     log "备份当前脚本 /usr/local/bin/kk 到 /usr/local/bin/kk.bak."
                 fi
 
-                # 更新目标脚本
-                echo "更新脚本 sh_main.sh 到 /usr/local/bin/kk ..."
-                cp -f "$DOWNLOAD_DIR/sh_main.sh" /usr/local/bin/kk || { echo "更新脚本失败。"; log "更新脚本失败。"; rm -rf "$temp_dir"; exit 1; }
-                log "更新脚本 sh_main.sh 到 /usr/local/bin/kk 完成。"
+                # 确保 /usr/local/bin/kk 是指向最新 sh_main.sh 的符号链接
+                echo "更新符号链接 /usr/local/bin/kk -> $DOWNLOAD_DIR/sh_main.sh"
+                ln -sf "$DOWNLOAD_DIR/sh_main.sh" /usr/local/bin/kk || { echo "更新符号链接失败。"; log "更新符号链接失败。"; rm -rf "$temp_dir"; exit 1; }
+                log "更新符号链接 /usr/local/bin/kk -> $DOWNLOAD_DIR/sh_main.sh 完成。"
 
                 # 更新本地的 config.yml
                 cp "$temp_config_file" "$local_config_file" || { echo "更新本地配置文件失败。"; log "更新本地配置文件失败。"; rm -rf "$temp_dir"; exit 1; }
@@ -244,8 +239,6 @@ kejilion_update() {
     rm -f "$temp_config_file"
     log "清理临时配置文件 $temp_config_file."
 }
-
-
 
 
 
