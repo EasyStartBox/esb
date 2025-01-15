@@ -32,7 +32,6 @@ log "Hello, World! 命令已执行"
 DEFAULT_DIR="$HOME/.patch_sh"
 DOWNLOAD_DIR="$DEFAULT_DIR"  # 固定为默认目录，不通过参数设置
 
-
 # 定义配置目录和文件（独立于 DOWNLOAD_DIR）
 CONFIG_DIR="$HOME/.patch_sh_config"
 CONFIG_FILE="$CONFIG_DIR/commands.conf"
@@ -86,9 +85,6 @@ download_dependencies() {
     done
 }
 
-
-
-
 # === 主安装/更新逻辑 ===
 
 echo "开始安装/更新脚本..."
@@ -96,9 +92,6 @@ log "开始安装/更新脚本..."
 
 # 下载依赖项
 download_dependencies "$DOWNLOAD_DIR"
-
-
-
 
 # 读取并处理配置文件
 CONFIG_YML="$DOWNLOAD_DIR/config.yml"
@@ -115,15 +108,10 @@ patch=$(grep '^patch:' "$CONFIG_YML" | awk '{print $2}')
 version_format=$(grep '^version_format:' "$CONFIG_YML" | cut -d'"' -f2)
 sh_v=$(echo "$version_format" | sed "s/{major}/$major/" | sed "s/{minor}/$minor/" | sed "s/{patch}/$patch/")
 
-log "当前版本 v$sh_v"
-
-
-
+log "当前版本 $sh_v"
 
 # 加载自定义命令  ==== 自定义命令实现 ====
 source "$DOWNLOAD_DIR/create_custom_command.sh"
-
-
 
 # 创建所有自定义命令
 create_all_custom_commands
@@ -135,16 +123,9 @@ create_all_custom_commands
 log "脚本执行完毕"
 echo "安装/更新完成。请使用 'add-command' 来添加新的自定义命令。"
 
-
-
-
 chmod +x "$DOWNLOAD_DIR/sh_main.sh"
 
-
-
-
 log "脚本执行完毕"
-
 
 # === 模块函数 === #此函数暂时不使用,因为看着不错先放这
 load_modules() {
@@ -160,11 +141,6 @@ load_modules() {
     done
 }
 
-
-
-
-
-
 send_stats() {
   # 这里可以什么都不做，避免函数不存在的错误
   return 0
@@ -173,13 +149,6 @@ send_stats() {
 CheckFirstRun_false(){
     return 0
 }
-
-
-
-
-
-
-
 
 # 按顺序加载模块
 # echo "加载依赖模块..."
@@ -198,8 +167,6 @@ CheckFirstRun_false(){
 source "$DOWNLOAD_DIR/patch_kejilion_update.sh"
 source "$DOWNLOAD_DIR/patch_kejilion_sh.sh"
 
-
-
 # 定义子脚本路径
 CHILD_SCRIPT="$DOWNLOAD_DIR/kejilion.sh"
 
@@ -210,14 +177,10 @@ sed -i '/^send_stats()/,/^}/d' "$CHILD_SCRIPT"
 sed -i '/^UserLicenseAgreement()/,/^}/d' "$CHILD_SCRIPT"
 sed -i '/^CheckFirstRun_false()/,/^}/d' "$CHILD_SCRIPT"
 
-
 # 删除变量 sh_v 的定义
 sed -i '/^sh_v=/d' "$CHILD_SCRIPT"
 
 # 加载修改后的子脚本
 source "$CHILD_SCRIPT"
-
-
-
 
 log "脚本执行完毕"
