@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # === 定义更新函数 ===
-# === 定义更新函数 ===
 kejilion_update() {
     # 解析传递的参数
     local FORCE_UPDATE=false
@@ -237,6 +236,7 @@ kejilion_update() {
 
                 # 覆盖下载目录
                 echo "覆盖下载目录 $DOWNLOAD_DIR..."
+                # 待以后详细测试,暂时删除再创建尝试,目前测得远程仓库版本增加才会升级
                 rm -rf "$DOWNLOAD_DIR"
                 mkdir -p "$DOWNLOAD_DIR"
                 cp -rf "$temp_dir"/* "$DOWNLOAD_DIR" || { echo "覆盖下载目录失败。"; log "覆盖下载目录失败。"; rm -rf "$temp_dir"; exit 1; }
@@ -290,4 +290,4 @@ kejilion_update() {
     log "清理临时配置文件 $temp_config_file."
 }
 
-# ====
+
