@@ -32,7 +32,7 @@ log "Hello, World! 命令已执行"
 # 设置下载目录
 DEFAULT_DIR="$HOME/.patch_sh"
 DOWNLOAD_DIR="$DEFAULT_DIR"  # 固定为默认目录，不通过参数设置
-rm -rf "$DOWNLOAD_DIR"
+#rm -rf "$DOWNLOAD_DIR"
 
 # 定义配置目录和文件（独立于 DOWNLOAD_DIR）
 CONFIG_DIR="$HOME/.patch_sh_config"
