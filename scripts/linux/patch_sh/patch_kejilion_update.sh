@@ -237,8 +237,9 @@ kejilion_update() {
 
                 # 覆盖下载目录
                 echo "覆盖下载目录 $DOWNLOAD_DIR..."
-                rm "$DOWNLOAD_DIR/*"
-                cp -rf "$temp_dir"/* "$DOWNLOAD_DIR/" || { echo "覆盖下载目录失败。"; log "覆盖下载目录失败。"; rm -rf "$temp_dir"; exit 1; }
+                rm -rf "$DOWNLOAD_DIR"
+                mkdir -p "$DOWNLOAD_DIR"
+                cp -rf "$temp_dir"/* "$DOWNLOAD_DIR" || { echo "覆盖下载目录失败。"; log "覆盖下载目录失败。"; rm -rf "$temp_dir"; exit 1; }
                 log "覆盖下载目录完成。"
 
                 # 赋予执行权限
