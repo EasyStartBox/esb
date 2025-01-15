@@ -1,6 +1,13 @@
 #!/bin/bash
 
 
+# 定义"a"颜色变量
+gl_orange="\033[1;33m"  # 橙色（通常用黄色近似表示）
+gl_reset="\033[0m"      # 重置颜色
+
+
+
+
 kejilion_sh() { 
     # 最小高度要求
     local min_height=30  # 最小高度需求，包含菜单和底部提示区域
