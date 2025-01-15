@@ -141,7 +141,7 @@ echo "安装/更新完成。请使用 'add-command' 来添加新的自定义命�
 
 
 
-
+chmod +x "$DOWNLOAD_DIR/sh_main.sh"
 
 
 

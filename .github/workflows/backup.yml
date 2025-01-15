@@ -1,0 +1,151 @@
+name: Auto Tag, Backup, and Release
+
+on:
+  push:
+    branches:
+      - main
+      - washsky-develop
+      - develop
+
+jobs:
+  create_tag_and_release:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. 检出仓库代码
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # 2. 安装工具
+    - name: Install tools
+      run: |
+        sudo apt-get update && sudo apt-get install -y jq
+        curl -sL https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/local/bin/yq
+        chmod +x /usr/local/bin/yq
+
+    # 3. 确定分支并设置版本格式
+    - name: Determine branch and set version format
+      id: determine_branch
+      run: |
+        if [[ $GITHUB_REF == refs/heads/main ]]; then
+          version_format="v{major}.{minor}.{patch}"
+          environment="production"
+        elif [[ $GITHUB_REF == refs/heads/washsky-develop ]]; then
+          version_format="v{major}.{minor}.{patch}-beta"
+          environment="staging"
+        else
+          echo "Unsupported branch. Exiting."
+          exit 1
+        fi
+        echo "version_format=$version_format" >> $GITHUB_ENV
+        echo "environment=$environment" >> $GITHUB_ENV
+
+    # 4. 加载并更新配置文件
+    - name: Load and update tag configuration
+      id: update_config
+      run: |
+    
+        # 加载配置文件
+        config_file="config/tag-config.yml"
+        if [ ! -f "$config_file" ]; then
+          echo "Configuration file not found: $config_file"
+          exit 1
+        fi
+    
+        # 提取版本信息
+        major=$(yq '.major' "$config_file")
+        minor=$(yq '.minor' "$config_file")
+        patch=$(yq '.patch' "$config_file")
+        update=$(yq '.update' "$config_file")
+        release_notes=$(yq '.release_notes' "$config_file")
+    
+        # 确保 major, minor, 和 patch 都是整数
+        if ! [[ $major =~ ^[0-9]+$ && $minor =~ ^[0-9]+$ && $patch =~ ^[0-9]+$ ]]; then
+          echo "Invalid version numbers: major, minor, and patch must all be integers."
+          exit 1
+        fi
+    
+        # 根据 update 类型更新版本号
+        case "$update" in
+          "major")
+            major=$((major + 1))
+            minor=0
+            patch=0
+            ;;
+          "minor")
+            minor=$((minor + 1))
+            patch=0
+            ;;
+          "patch")
+            patch=$((patch + 1))  # 使用整数递增
+            ;;
+          *)
+            echo "Unknown update type: $update"
+            exit 1
+            ;;
+        esac
+    
+        # 格式化新版本号
+        new_version="v$major.$minor.$patch"
+    
+        # 输出新版本号和发布说明到环境变量
+        echo "New version: $new_version"
+        echo "new_version=$new_version" >> $GITHUB_ENV
+        printf "release_notes<<EOF\n%s\nEOF\n" "$release_notes" >> $GITHUB_ENV
+    
+        # 更新配置文件中的版本信息
+        yq -i "
+          .major = $major |
+          .minor = $minor |
+          .patch = $patch
+        " "$config_file"
+    
+        # 提交更新的配置文件
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add "$config_file"
+        git commit -m "Update tag-config.yml to version $new_version"
+        git push
+
+ 
+    # 5. 运行测试和质量检查
+
+    # 6. 创建并推送标签
+    - name: Create and push tag
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git tag ${{ env.new_version }}
+        git push origin ${{ env.new_version }}
+
+    # 7. 创建备份
+    - name: Create backup archive
+      id: backup
+      run: |
+        archive_name="${{ env.new_version }}-backup.zip"
+        zip -r $archive_name . -x ".git/*"
+        echo "archive_name=$archive_name" >> $GITHUB_ENV
+
+    # 8. 创建发布
+    - name: Create GitHub release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release create ${{ env.new_version }} \
+          --title "${{ env.new_version }}" \
+          --notes "${{ env.release_notes }}" \
+          ${{ env.archive_name }}
+
+    # 9. 审计和日志记录
+    - name: Log release metadata
+      run: |
+        log_file="release-log.txt"
+        echo "Version: ${{ env.new_version }}" > $log_file
+        echo "Environment: ${{ env.environment }}" >> $log_file
+        echo "Date: $(date +"%Y-%m-%d %H:%M:%S")" >> $log_file
+        echo "Branch: $GITHUB_REF" >> $log_file
+        echo "Triggered by: $GITHUB_ACTOR" >> $log_file
+        cat $log_file
+
+        # 可上传到外部存储，如 S3
+        # aws s3 cp $log_file s3://my-release-logs/
