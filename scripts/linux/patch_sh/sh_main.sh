@@ -9,7 +9,7 @@ fi
 # === 配置部分 ===
 
 # 设置基础目录
-cd ~
+cd ~ || { echo "无法切换到主目录。"; exit 1; }
 
 # 每次运行删除临时目录
 rm -rf /tmp/patch_sh_update
@@ -31,7 +31,7 @@ log "Hello, World! 命令已执行"
 
 # 设置下载目录
 DEFAULT_DIR="$HOME/.patch_sh"
-DOWNLOAD_DIR="${1:-$DEFAULT_DIR}"  # 如果提供参数，则使用参数作为目录；否则使用默认目录。
+DOWNLOAD_DIR="$DEFAULT_DIR"  # 固定为默认目录，不通过参数设置
 rm -rf "$DOWNLOAD_DIR"
 
 # 定义配置目录和文件（独立于 DOWNLOAD_DIR）
@@ -86,26 +86,6 @@ download_dependencies() {
     done
 }
 
-# 下载依赖项
-download_dependencies "$DOWNLOAD_DIR"
-
-# 读取并处理配置文件
-CONFIG_YML="$DOWNLOAD_DIR/config.yml"
-if [ ! -f "$CONFIG_YML" ]; then
-    echo "配置文件不存在：$CONFIG_YML"
-    log "配置文件不存在：$CONFIG_YML"
-    exit 1
-fi
-
-# 提取版本信息
-major=$(grep '^major:' "$CONFIG_YML" | awk '{print $2}')
-minor=$(grep '^minor:' "$CONFIG_YML" | awk '{print $2}')
-patch=$(grep '^patch:' "$CONFIG_YML" | awk '{print $2}')
-version_format=$(grep '^version_format:' "$CONFIG_YML" | cut -d'"' -f2)
-sh_v=$(echo "$version_format" | sed "s/{major}/$major/" | sed "s/{minor}/$minor/" | sed "s/{patch}/$patch/")
-
-log "当前版本 v$sh_v"
-
 # === 自定义命令管理部分 ===
 
 # 创建自定义命令的函数，支持任意命令名称
@@ -114,7 +94,7 @@ create_custom_command() {
 
     # 检查命令名称是否提供
     if [ -z "$command_name" ]; then
-        echo "未提供命令名称。使用方法: create_custom_command <命令名称>"
+        echo "未提供命令名称。使用方法: add-command"
         exit 1
     fi
 
@@ -283,56 +263,79 @@ list_custom_commands() {
 
 # === 脚本参数处理 ===
 
-# 处理脚本参数以添加自定义命令
-if [ "$1" == "add-command" ]; then
-    read -p "请输入自定义命令名称: " new_command
-    create_custom_command "$new_command"
-    exit 0
+case "$1" in
+    add-command)
+        read -p "请输入自定义命令名称: " new_command
+        create_custom_command "$new_command"
+        exit 0
+        ;;
+    remove-command)
+        read -p "请输入要移除的自定义命令名称: " del_command
+        remove_custom_command "$del_command"
+        exit 0
+        ;;
+    list-commands)
+        list_custom_commands
+        exit 0
+        ;;
+    uninstall)
+        echo "卸载所有自定义命令..."
+        while IFS= read -r command_name; do
+            [[ -z "$command_name" || "$command_name" =~ ^# ]] && continue
+            local link_path="/usr/local/bin/$command_name"
+            if [ -L "$link_path" ]; then
+                rm -f "$link_path" && \
+                { 
+                    log "符号链接已删除：$link_path"
+                    echo "符号链接已删除：$link_path"
+                } || { 
+                    echo "无法删除符号链接：$link_path"
+                }
+            fi
+        done < "$CONFIG_FILE"
+        rm -f "$CONFIG_FILE"
+        log "所有自定义命令已卸载，$CONFIG_FILE 已删除。"
+        echo "所有自定义命令已卸载。"
+        exit 0
+        ;;
+    *)
+        ;;
+esac
+
+# === 主安装/更新逻辑 ===
+
+echo "开始安装/更新脚本..."
+log "开始安装/更新脚本..."
+
+# 下载依赖项
+download_dependencies "$DOWNLOAD_DIR"
+
+# 读取并处理配置文件
+CONFIG_YML="$DOWNLOAD_DIR/config.yml"
+if [ ! -f "$CONFIG_YML" ]; then
+    echo "配置文件不存在：$CONFIG_YML"
+    log "配置文件不存在：$CONFIG_YML"
+    exit 1
 fi
 
-# 处理脚本参数以移除自定义命令
-if [ "$1" == "remove-command" ]; then
-    read -p "请输入要移除的自定义命令名称: " del_command
-    remove_custom_command "$del_command"
-    exit 0
-fi
+# 提取版本信息
+major=$(grep '^major:' "$CONFIG_YML" | awk '{print $2}')
+minor=$(grep '^minor:' "$CONFIG_YML" | awk '{print $2}')
+patch=$(grep '^patch:' "$CONFIG_YML" | awk '{print $2}')
+version_format=$(grep '^version_format:' "$CONFIG_YML" | cut -d'"' -f2)
+sh_v=$(echo "$version_format" | sed "s/{major}/$major/" | sed "s/{minor}/$minor/" | sed "s/{patch}/$patch/")
 
-# 处理脚本参数以列出自定义命令
-if [ "$1" == "list-commands" ]; then
-    list_custom_commands
-    exit 0
-fi
+log "当前版本 v$sh_v"
 
-# 处理脚本参数以卸载所有自定义命令
-if [ "$1" == "uninstall" ]; then
-    echo "卸载所有自定义命令..."
-    while IFS= read -r command_name; do
-        [[ -z "$command_name" || "$command_name" =~ ^# ]] && continue
-        local link_path="/usr/local/bin/$command_name"
-        if [ -L "$link_path" ]; then
-            rm -f "$link_path" && \
-            { 
-                log "符号链接已删除：$link_path"
-                echo "符号链接已删除：$link_path"
-            } || { 
-                echo "无法删除符号链接：$link_path"
-            }
-        fi
-    done < "$CONFIG_FILE"
-    rm -f "$CONFIG_FILE"
-    log "所有自定义命令已卸载，$CONFIG_FILE 已删除。"
-    echo "所有自定义命令已卸载。"
-    exit 0
-fi
-
-# === 创建所有自定义命令 ===
+# 创建所有自定义命令
 create_all_custom_commands
 
 # === 其他脚本逻辑 ===
 
-# 这里可以添加其他需要在安装/更新时执行的逻辑
+# 在这里添加其他需要在安装/更新时执行的逻辑
 
 log "脚本执行完毕"
+echo "安装/更新完成。请使用 'add-command' 来添加新的自定义命令。"
 
 
 log "脚本执行完毕"
