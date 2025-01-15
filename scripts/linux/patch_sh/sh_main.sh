@@ -31,14 +31,14 @@ log "Hello, World! 命令已执行"
 # 设置下载目录
 DEFAULT_DIR="$HOME/.patch_sh"
 DOWNLOAD_DIR="$DEFAULT_DIR"  # 固定为默认目录，不通过参数设置
-#rm -rf "$DOWNLOAD_DIR"
+
 
 # 定义配置目录和文件（独立于 DOWNLOAD_DIR）
 CONFIG_DIR="$HOME/.patch_sh_config"
 CONFIG_FILE="$CONFIG_DIR/commands.conf"
 
 # 创建配置目录
-mkdir -p "$CONFIG_DIR"
+mkdir -p "$CONFIG_DIR" || { echo "无法创建配置目录。"; log "无法创建配置目录。"; exit 1; }
 
 # 如果 commands.conf 不存在，初始化为包含默认命令 'kk'
 if [ ! -f "$CONFIG_FILE" ]; then
@@ -89,13 +89,6 @@ download_dependencies() {
 
 
 
-
-source "$DOWNLOAD_DIR/create_custom_command.sh"
-
-
-
-
-
 # === 主安装/更新逻辑 ===
 
 echo "开始安装/更新脚本..."
@@ -103,6 +96,9 @@ log "开始安装/更新脚本..."
 
 # 下载依赖项
 download_dependencies "$DOWNLOAD_DIR"
+
+
+
 
 # 读取并处理配置文件
 CONFIG_YML="$DOWNLOAD_DIR/config.yml"
@@ -121,6 +117,14 @@ sh_v=$(echo "$version_format" | sed "s/{major}/$major/" | sed "s/{minor}/$minor/
 
 log "当前版本 v$sh_v"
 
+
+
+
+# 加载自定义命令  ==== 自定义命令实现 ====
+source "$DOWNLOAD_DIR/create_custom_command.sh"
+
+
+
 # 创建所有自定义命令
 create_all_custom_commands
 
@@ -134,17 +138,7 @@ echo "安装/更新完成。请使用 'add-command' 来添加新的自定义命�
 
 
 
-
-
-
-
-
-
-
 chmod +x "$DOWNLOAD_DIR/sh_main.sh"
-
-
-
 
 
 
