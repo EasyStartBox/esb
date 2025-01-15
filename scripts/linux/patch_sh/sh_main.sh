@@ -45,7 +45,7 @@ DEPENDENCIES=(
     "patch_kejilion_update.sh|https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/patch_sh/patch_kejilion_update.sh"
     "patch_kejilion_sh.sh|https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/patch_sh/patch_kejilion_sh.sh"
     "sh_main.sh|https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/patch_sh/sh_main.sh"
-    "kejilion.sh|https://raw.githubusercontent.com/EasyStartBox/esb/main/kejilion/sh/kejilion.sh"
+    "kejilion.sh|https://raw.githubusercontent.com/kejilion/sh/main/kejilion.sh"
     
     "config.yml|https://raw.githubusercontent.com/EasyStartBox/esb/main/config/patch_sh/config.yml"  # 配置文件
 )
