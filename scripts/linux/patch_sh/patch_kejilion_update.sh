@@ -1,10 +1,5 @@
 #!/bin/bash
 
-
-
-
-
-
 # === 定义更新函数 ===
 kejilion_update() {
     # 解析传递的参数
@@ -71,9 +66,9 @@ kejilion_update() {
         exit 1
     fi
 
-    # 构造远程完整版本号
+    # 构造远程完整版本号（不包含 'v' 前缀）
     remote_sh_v=$(echo "$remote_version_format" | sed "s/{major}/$remote_major/" | sed "s/{minor}/$remote_minor/" | sed "s/{patch}/$remote_patch/")
-    log "远程版本 v$remote_sh_v"
+    log "远程版本 $remote_sh_v"
 
     # 提取本地版本信息
     if [ -f "$local_config_file" ]; then
@@ -88,9 +83,9 @@ kejilion_update() {
             log "本地配置文件中的版本信息不完整。"
             local_sh_v="0.0.0"  # 假设初始版本为 0.0.0
         else
-            # 构造本地完整版本号
+            # 构造本地完整版本号（不包含 'v' 前缀）
             local_sh_v=$(echo "$local_version_format" | sed "s/{major}/$local_major/" | sed "s/{minor}/$local_minor/" | sed "s/{patch}/$local_patch/")
-            log "本地版本 v$local_sh_v"
+            log "本地版本 $local_sh_v"
         fi
     else
         echo "本地配置文件不存在：$local_config_file"
@@ -98,36 +93,41 @@ kejilion_update() {
         local_sh_v="0.0.0"  # 假设初始版本为 0.0.0
     fi
 
-    echo "当前版本 v$local_sh_v    最新版本 v$remote_sh_v"
+    echo "当前版本 $local_sh_v    最新版本 $remote_sh_v"
     echo "------------------------"
 
     # 版本比较函数
     version_compare() {
-        if [[ "$1" == "$2" ]]; then
+        # 去除可能的 'v' 前缀
+        local ver1="${1#v}"
+        local ver2="${2#v}"
+
+        if [[ "$ver1" == "$ver2" ]]; then
             return 0
         fi
 
         local IFS=.
         local i
-        local ver1=($1)
-        local ver2=($2)
+        local ver1_array=($ver1)
+        local ver2_array=($ver2)
 
-        # Fill empty fields in ver1 with zeros
-        for ((i=${#ver1[@]}; i<${#ver2[@]}; i++)); do
-            ver1[i]=0
+        # 填充较短的版本号数组
+        for ((i=${#ver1_array[@]}; i<${#ver2_array[@]}; i++)); do
+            ver1_array[i]=0
         done
-        # Fill empty fields in ver2 with zeros
-        for ((i=0; i<${#ver1[@]}; i++)); do
-            if [[ -z ${ver2[i]} ]]; then
-                ver2[i]=0
-            fi
-            if ((10#${ver1[i]} > 10#${ver2[i]})); then
+        for ((i=${#ver2_array[@]}; i<${#ver1_array[@]}; i++)); do
+            ver2_array[i]=0
+        done
+
+        for ((i=0; i<${#ver1_array[@]}; i++)); do
+            if ((10#${ver1_array[i]} > 10#${ver2_array[i]})); then
                 return 1
             fi
-            if ((10#${ver1[i]} < 10#${ver2[i]})); then
+            if ((10#${ver1_array[i]} < 10#${ver2_array[i]})); then
                 return 2
             fi
         done
+
         return 0
     }
 
@@ -139,8 +139,8 @@ kejilion_update() {
             echo -e "${gl_lv}强制更新脚本。${gl_bai}"
             log "强制更新脚本。"
         else
-            echo -e "${gl_lv}你已经是最新版本！${gl_huang}v$remote_sh_v${gl_bai}"
-            log "脚本已经是最新版本 v$remote_sh_v，无需更新。"
+            echo -e "${gl_lv}你已经是最新版本！${gl_huang}$remote_sh_v${gl_bai}"
+            log "脚本已经是最新版本 $remote_sh_v，无需更新。"
 
             # 提示用户是否要强制更新
             read -e -p "是否要强制更新脚本？(Y/N): " user_choice
@@ -180,9 +180,9 @@ kejilion_update() {
     if [ "$FORCE_UPDATE" = true ] || [ "$compare_result" -ne 0 ]; then
         echo "准备更新脚本..."
         if [ "$FORCE_UPDATE" = true ]; then
-            echo -e "当前版本 v$local_sh_v        最新版本 ${gl_huang}v$remote_sh_v${gl_bai} (强制更新)"
+            echo -e "当前版本 $local_sh_v        最新版本 ${gl_huang}$remote_sh_v${gl_bai} (强制更新)"
         else
-            echo -e "当前版本 v$local_sh_v        最新版本 ${gl_huang}v$remote_sh_v${gl_bai}"
+            echo -e "当前版本 $local_sh_v        最新版本 ${gl_huang}$remote_sh_v${gl_bai}"
         fi
         echo "------------------------"
         read -e -p "确定更新脚本吗？(Y/N): " choice
@@ -285,6 +285,3 @@ kejilion_update() {
     log "清理临时配置文件 $temp_config_file."
 }
 
-
-
-# ==

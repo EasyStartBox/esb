@@ -110,6 +110,7 @@ sh_v=$(echo "$version_format" | sed "s/{major}/$major/" | sed "s/{minor}/$minor/
 
 log "当前版本 $sh_v"
 
+
 # 加载自定义命令  ==== 自定义命令实现 ====
 source "$DOWNLOAD_DIR/create_custom_command.sh"
 
