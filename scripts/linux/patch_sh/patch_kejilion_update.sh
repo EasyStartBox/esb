@@ -280,8 +280,6 @@ kejilion_update() {
     log "清理临时配置文件 $temp_config_file."
 }
 
-# === 调用更新函数 ===
-kejilion_update "$@"
 
 
 
