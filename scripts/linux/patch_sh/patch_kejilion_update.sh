@@ -287,3 +287,5 @@ kejilion_update() {
     rm -f "$temp_config_file"
     log "清理临时配置文件 $temp_config_file."
 }
+
+# ====
