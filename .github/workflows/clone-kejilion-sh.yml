@@ -15,27 +15,27 @@ jobs:
   clone-and-update:
     runs-on: ubuntu-latest
     steps:
+      # 检出当前仓库的代码
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Show current directory
-        run: ls -al
-
+      # 删除目标文件夹内容
       - name: Remove old directory contents
         run: |
-          rm -rf ./kejilion
-          mkdir -p kejilion/sh
+          rm -rf ./kejilion/sh
+          mkdir -p ./kejilion/sh
 
-      - name: Show directory after removal
-        run: ls -al ./kejilion
-
+      # 克隆远程仓库到指定目录
       - name: Clone Kejilion SH Repo
         run: |
           git clone --single-branch --branch main https://github.com/kejilion/sh.git ./kejilion/sh
 
-      - name: Show directory after clone
-        run: ls -al ./kejilion/sh
+      # 删除 `.git` 文件夹，以避免被当作子模块
+      - name: Remove .git from the cloned repository
+        run: |
+          rm -rf ./kejilion/sh/.git
 
+      # 提交更改到当前仓库
       - name: Commit changes
         run: |
           git config --global user.name "GitHub Actions"
