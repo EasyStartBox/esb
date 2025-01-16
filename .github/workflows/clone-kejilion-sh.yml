@@ -28,12 +28,18 @@ jobs:
         run: |
           git clone --recursive https://github.com/kejilion/sh.git ./kejilion/sh
 
-      # Step 4: 提交更改到当前仓库
-      - name: Push changes to this repository
+      # Step 4: 更新子模块（确保子模块内容是最新的）
+      - name: Update submodules
+        run: |
+          cd ./kejilion/sh
+          git submodule update --init --recursive
+
+      # Step 5: 提交更改到当前仓库
+      - name: Commit and push changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add ./kejilion/sh/*
+          git add ./kejilion/sh
           git commit -m "Synced kejilion/sh repository to kejilion/sh folder"
           git push --force
 
