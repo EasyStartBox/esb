@@ -18,7 +18,7 @@ jobs:
       # 第二步：删除目标目录，确保目录为空
       - name: Delete existing kejiion/sh folder
         run: rm -rf kejiion/sh
-             ls -al
+             
 
       # 第三步：克隆远程仓库内容到目标目录
       - name: Clone remote repository to target directory
