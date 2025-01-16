@@ -1,40 +1,36 @@
-name: Clone Kejilion SH Repo
+name: Sync Kejilion SH Repo
 
 on:
   push:
     branches:
-      - main
-  workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Git branch to clone'
-        required: false
-        default: 'main'
+      - main  # 自动触发的分支
+  workflow_dispatch:  # 支持手动触发
 
 jobs:
-  clone-and-update:
+  sync_repo:
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Checkout repository
+      # 第一步：检查出自己的代码仓库
+      - name: Checkout own repository
         uses: actions/checkout@v3
+        
+      # 第二步：删除目标目录，确保目录为空
+      - name: Delete existing kejiion/sh folder
+        run: rm -rf kejiion/sh
 
-      - name: Remove old directory contents
+      # 第三步：克隆远程仓库内容到目标目录
+      - name: Clone remote repository to target directory
         run: |
-          rm -rf ./kejilion/sh
-          mkdir -p ./kejilion/sh
+          git clone --depth 1 https://github.com/kejilion/sh.git kejiion/sh
 
-      - name: Clone Kejilion SH Repo
+      # 第四步：提交并推送更改
+      - name: Commit and push changes
         run: |
-          git clone --single-branch --branch main https://github.com/kejilion/sh.git ./kejilion/sh
-
-      - name: Remove .git from the cloned repository
-        run: |
-          rm -rf ./kejilion/sh/.git
-
-      - name: Commit changes
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
+          git config user.name "Your Name"
+          git config user.email "youremail@example.com"
           git add .
-          git commit -m "Update kejilion/sh content" || echo "No changes to commit"
-          git push
+          git commit -m "Sync with remote kejilion/sh repository"
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 自动化提交需要权限，可以通过 GitHub Token 来授权
