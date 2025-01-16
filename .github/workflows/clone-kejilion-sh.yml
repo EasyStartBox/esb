@@ -22,12 +22,15 @@ jobs:
       # 删除目标文件夹内的内容
       - name: Remove old directory contents
         run: |
+          echo "Removing old directory contents"
           rm -rf ./kejilion/sh
 
       # 克隆 kejilion/sh 仓库到指定目录
       - name: Clone Kejilion SH Repo
         run: |
+          echo "Cloning repository"
           git clone --single-branch --branch main https://github.com/kejilion/sh.git ./kejilion/sh
+          ls -al ./kejilion/sh  # 列出目录内容，确认是否正确克隆
 
       # 提交更改到当前仓库（如果有变化）
       - name: Commit changes
@@ -36,4 +39,4 @@ jobs:
           git config --global user.email "actions@github.com"
           git add .
           git commit -m "Update kejilion/sh content" || echo "No changes to commit"
-          git push
+          git push origin main  # 确保推送到正确的分支
