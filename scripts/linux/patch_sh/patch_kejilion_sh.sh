@@ -16,7 +16,7 @@ SHARED_FILE="/tmp/system_info.txt"
 
 # 定义清理函数
 cleanup() {
-    echo "清理临时文件和子进程..."
+    # echo "清理临时文件和子进程..."
     rm -f "$SHARED_FILE"
     kill "$DYNAMIC_PID" 2>/dev/null
     kill "$DISPLAY_PID" 2>/dev/null
