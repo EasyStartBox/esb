@@ -3,7 +3,7 @@ name: Sync Kejilion SH
 on:
   push:
     branches:
-      - main  # 自动触发在主分支上的 push 操作
+      - main
   workflow_dispatch:  # 支持手动触发
 
 jobs:
@@ -26,9 +26,26 @@ jobs:
       - name: Clone the Kejilion/sh repository
         run: |
           git clone https://github.com/kejilion/sh.git kejilion/sh
+        continue-on-error: true  # 如果克隆失败时不要阻止后续步骤
+
+      - name: Check if cloning was successful
+        run: |
+          if [ ! -d "kejilion/sh" ]; then
+            echo "Error: Cloning failed. Exiting."
+            exit 1
+          fi
+          echo "Cloning was successful"
+
+      - name: Debugging - Show changes
+        run: |
+          git status
+
+      - name: Force add kejilion/sh directory
+        run: |
+          git add -f kejilion/sh
+          git status
 
       - name: Commit and push the changes
         run: |
-          git add kejilion/sh
-          git commit -m "Sync with Kejilion/sh repository"
+          git commit -m "Sync with Kejilion/sh repository" || echo "No changes to commit"
           git push origin main
