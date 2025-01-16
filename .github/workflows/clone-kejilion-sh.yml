@@ -1,32 +1,34 @@
-name: Sync Repository
+name: Sync Kejilion SH
 
 on:
   push:
     branches:
-      - main  # 如果你想在 `main` 分支推送时触发
+      - main  # 自动触发在主分支上的 push 操作
   workflow_dispatch:  # 支持手动触发
-  schedule:
-    - cron: '0 0 * * *'  # 每天定时触发（可选）
 
 jobs:
-  sync:
+  sync_sh:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Remove existing kejilion/sh directory
-        run: rm -rf kejilion/sh
+      - name: Set up Git
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
 
-      - name: Clone the remote repository
+      - name: Delete existing kejilion/sh directory
+        run: |
+          rm -rf kejilion/sh
+
+      - name: Clone the Kejilion/sh repository
         run: |
           git clone https://github.com/kejilion/sh.git kejilion/sh
 
-      - name: Commit and push changes
+      - name: Commit and push the changes
         run: |
-          git config --global user.email "your-email@example.com"
-          git config --global user.name "your-username"
-          git add .
-          git commit -m "Sync with kejilion/sh repository" || echo "No changes to commit"
-          git push
+          git add kejilion/sh
+          git commit -m "Sync with Kejilion/sh repository"
+          git push origin main
