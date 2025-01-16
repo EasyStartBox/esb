@@ -42,7 +42,7 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add ./kejilion/sh
           git commit -m "Synced kejilion/sh repository to kejilion/sh folder"
-          git push --force
+          git push
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
