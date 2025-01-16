@@ -18,24 +18,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # Step 1: Checkout the current repository
     - name: Checkout the current repository
       uses: actions/checkout@v3
 
+    # Step 2: Clone the remote repository (https://github.com/kejilion/sh.git)
     - name: Clone the remote repository
       run: |
-        git clone https://github.com/kejilion/sh.git sh-temp
+        git clone https://github.com/kejilion/sh.git sh-temp  # 克隆远程仓库到临时目录
 
+    # Step 3: Copy contents to the target directory
     - name: Copy the contents to the target directory
       run: |
         mkdir -p ./kejilion/sh  # 创建目标目录
         cp -r ./sh-temp/* ./kejilion/sh/  # 复制内容到目标目录
 
+    # Step 4: Clean up temporary files (sh-temp directory)
+    - name: Clean up temporary files
+      run: |
+        rm -rf ./sh-temp  # 删除临时克隆的 sh-temp 目录
+
+    # Step 5: Commit and push the changes to the repository
     - name: Commit and push changes
       run: |
         git config --global user.name "Your GitHub Username"
         git config --global user.email "your-email@example.com"
-        git add .
+        git add ./kejilion/sh  # 只添加目标目录
         git commit -m "Copy content from kejilion/sh repository to /kejilion/sh"
         git push
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 使用自动提供的 GitHub Token
