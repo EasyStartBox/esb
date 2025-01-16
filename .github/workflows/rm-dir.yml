@@ -1,0 +1,31 @@
+# .github/workflows/main.yml
+
+name: Main Workflow
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # 支持手动触发
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Trigger secondary workflow after 1 minute
+        run: |
+          echo "Waiting for 1 minute before triggering the secondary workflow..."
+          sleep 1  # 等待 1 分钟
+
+      - name: Delete existing kejiion/sh folder
+        run: rm -rf kejiion/sh
+          
+      - name: Trigger secondary workflow
+        uses: peter-evans/workflow-dispatch@v1
+        with:
+          repository: your-username/your-repo  # 替换为你的仓库名称
+          workflow: clone-sh.yml  # 第二个工作流文件名
+          ref: refs/heads/main  # 可以选择要触发的分支（一般是main）
