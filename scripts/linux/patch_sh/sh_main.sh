@@ -57,6 +57,7 @@ mkdir -p "$DOWNLOAD_DIR"
 # 定义依赖项
 DEPENDENCIES=(
     "create_custom_command.sh|https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/patch_sh/create_custom_command.sh"
+    "patch_kejilion_sh_linux_ps.sh|https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/patch_sh/patch_kejilion_sh_linux_ps.sh"
     "patch_kejilion_update.sh|https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/patch_sh/patch_kejilion_update.sh"
     "patch_kejilion_sh.sh|https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/patch_sh/patch_kejilion_sh.sh"
     "sh_main.sh|https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/patch_sh/sh_main.sh"
@@ -165,6 +166,7 @@ CheckFirstRun_false(){
 # }
 # load_modules_core
 
+source "$DOWNLOAD_DIR/patch_kejilion_sh_linux_ps.sh"
 source "$DOWNLOAD_DIR/patch_kejilion_update.sh"
 source "$DOWNLOAD_DIR/patch_kejilion_sh.sh"
 
@@ -177,6 +179,7 @@ sed -i '/^kejilion_sh()/,/^}/d' "$CHILD_SCRIPT"
 sed -i '/^send_stats()/,/^}/d' "$CHILD_SCRIPT"
 sed -i '/^UserLicenseAgreement()/,/^}/d' "$CHILD_SCRIPT"
 sed -i '/^CheckFirstRun_false()/,/^}/d' "$CHILD_SCRIPT"
+sed -i '/^linux_ps()/,/^}/d' "$CHILD_SCRIPT"
 
 # 删除变量 sh_v 的定义
 sed -i '/^sh_v=/d' "$CHILD_SCRIPT"
