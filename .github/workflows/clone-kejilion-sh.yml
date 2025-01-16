@@ -19,15 +19,13 @@ jobs:
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
 
+      - name: Delete existing kejilion/sh directory
+        run: |
+          rm -rf kejilion/sh  # 删除本地目录，避免冲突
 
       - name: Pull latest changes from remote main
         run: |
           git pull origin main --rebase  # 拉取远程 main 分支的最新内容
-
-
-      - name: Delete existing kejilion/sh directory
-        run: |
-          rm -rf kejilion/sh  # 删除本地目录，避免冲突
 
       - name: Clone the Kejilion/sh repository
         run: |
