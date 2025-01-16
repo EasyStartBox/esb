@@ -45,11 +45,11 @@ if [ ! -f "$CONFIG_FILE" ]; then
     log "初始化 commands.conf，添加默认命令 'kk'"
 fi
 
-# 清理函数
-cleanup() {
-    echo "清理临时资源..."
-}
-trap cleanup EXIT
+# # 清理函数
+# cleanup() {
+#     echo "清理临时资源..."
+# }
+# trap cleanup EXIT
 
 # 创建下载目录
 mkdir -p "$DOWNLOAD_DIR"
