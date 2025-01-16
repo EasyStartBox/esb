@@ -3,8 +3,8 @@ name: Clone Kejilion SH Repo
 on:
   push:
     branches:
-      - main   # 你可以根据需求更改为你想要触发的分支
-  workflow_dispatch:   # 手动触发
+      - main
+  workflow_dispatch:
     inputs:
       branch:
         description: 'Git branch to clone'
@@ -15,28 +15,30 @@ jobs:
   clone-and-update:
     runs-on: ubuntu-latest
     steps:
-      # 检出当前仓库的代码
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 删除目标文件夹内的内容
+      - name: Show current directory
+        run: ls -al
+
       - name: Remove old directory contents
         run: |
-          echo "Removing old directory contents"
           rm -rf ./kejilion/sh
 
-      # 克隆 kejilion/sh 仓库到指定目录
+      - name: Show directory after removal
+        run: ls -al ./kejilion
+
       - name: Clone Kejilion SH Repo
         run: |
-          echo "Cloning repository"
           git clone --single-branch --branch main https://github.com/kejilion/sh.git ./kejilion/sh
-          ls -al ./kejilion/sh  # 列出目录内容，确认是否正确克隆
 
-      # 提交更改到当前仓库（如果有变化）
+      - name: Show directory after clone
+        run: ls -al ./kejilion/sh
+
       - name: Commit changes
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git add .
           git commit -m "Update kejilion/sh content" || echo "No changes to commit"
-          git push origin main  # 确保推送到正确的分支
+          git push
