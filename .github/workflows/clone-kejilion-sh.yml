@@ -1,48 +1,41 @@
-name: Sync kejilion/sh to this repository
+name: Copy Remote Repo to Subdirectory
 
 on:
-  # 定时任务：每天凌晨 1 点触发
-  schedule:
-    - cron: '0 1 * * *'
   # 手动触发
-  workflow_dispatch:
+  workflow_dispatch:  # 通过 GitHub UI 手动触发
+
+  # 定时触发
+  schedule:
+    - cron: '0 0 * * *'  # 每天午夜12:00（UTC时间）
+
+  # 提交触发
+  push:
+    branches:
+      - main  # 当推送到 main 分支时触发
 
 jobs:
-  clone-and-sync:
+  copy-repo-to-subdir:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: 检出当前仓库代码
-      - name: Checkout this repository
-        uses: actions/checkout@v3
+    - name: Checkout the current repository
+      uses: actions/checkout@v3
 
-      # Step 2: 清理目标目录（如果存在）
-      - name: Clean target directory
-        run: |
-          if [ -d "./kejilion/sh" ]; then
-            rm -rf ./kejilion/sh
-          fi
+    - name: Clone the remote repository
+      run: |
+        git clone https://github.com/kejilion/sh.git sh-temp
 
-      # Step 3: 克隆 kejilion/sh 仓库及其子模块
-      - name: Clone kejilion/sh repository and submodules
-        run: |
-          git clone --recursive https://github.com/kejilion/sh.git ./kejilion/sh
+    - name: Copy the contents to the target directory
+      run: |
+        mkdir -p ./kejilion/sh  # 创建目标目录
+        cp -r ./sh-temp/* ./kejilion/sh/  # 复制内容到目标目录
 
-      # Step 4: 更新子模块并确保子模块引用是最新的
-      - name: Update submodules to latest
-        run: |
-          cd ./kejilion/sh
-          git submodule update --init --recursive
-          git status
-
-      # Step 5: 提交并推送更改
-      - name: Commit and push changes
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add ./kejilion/sh
-          git commit -m "Synced kejilion/sh repository to kejilion/sh folder"
-          git push
-
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Commit and push changes
+      run: |
+        git config --global user.name "Your GitHub Username"
+        git config --global user.email "your-email@example.com"
+        git add .
+        git commit -m "Copy content from kejilion/sh repository to /kejilion/sh"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
