@@ -28,13 +28,14 @@ jobs:
         run: |
           git clone --recursive https://github.com/kejilion/sh.git ./kejilion/sh
 
-      # Step 4: 更新子模块（确保子模块内容是最新的）
-      - name: Update submodules
+      # Step 4: 更新子模块并确保子模块引用是最新的
+      - name: Update submodules to latest
         run: |
           cd ./kejilion/sh
           git submodule update --init --recursive
+          git status
 
-      # Step 5: 提交更改到当前仓库
+      # Step 5: 提交并推送更改
       - name: Commit and push changes
         run: |
           git config --global user.name "github-actions[bot]"
