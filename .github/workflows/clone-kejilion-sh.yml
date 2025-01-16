@@ -21,18 +21,18 @@ jobs:
 
       - name: Delete existing kejilion/sh directory
         run: |
-          rm -rf kejilion/sh
-
-      - name: Clone the Kejilion/sh repository
-        run: |
-          git clone https://github.com/kejilion/sh.git kejilion/sh
+          rm -rf kejilion/sh  # 删除本地目录，避免冲突
 
       - name: Pull latest changes from remote main
         run: |
-          git pull origin main  # 拉取最新的远程 main 分支代码
+          git pull origin main  # 拉取远程 main 分支的最新内容
+
+      - name: Clone the Kejilion/sh repository
+        run: |
+          git clone https://github.com/kejilion/sh.git kejilion/sh  # 克隆最新内容到本地目录
 
       - name: Commit and push the changes
         run: |
-          git add kejilion/sh
+          git add kejilion/sh  # 添加更新后的 kejilion/sh 目录
           git commit -m "Sync with Kejilion/sh repository" || git commit --amend --no-edit --allow-empty -m "Sync with Kejilion/sh repository"
-          git push origin main
+          git push origin main  # 推送到远程仓库
