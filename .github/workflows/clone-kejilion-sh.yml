@@ -23,7 +23,8 @@ jobs:
 
       - name: Remove old directory contents
         run: |
-          rm -rf ./kejilion/sh
+          rm -rf ./kejilion
+          mkdir -p kejilion/sh
 
       - name: Show directory after removal
         run: ls -al ./kejilion
