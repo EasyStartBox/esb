@@ -180,6 +180,7 @@ sed -i '/^send_stats()/,/^}/d' "$CHILD_SCRIPT"
 sed -i '/^UserLicenseAgreement()/,/^}/d' "$CHILD_SCRIPT"
 sed -i '/^CheckFirstRun_false()/,/^}/d' "$CHILD_SCRIPT"
 sed -i '/^linux_ps()/,/^}/d' "$CHILD_SCRIPT"
+sed -i '/install_dependency() {/,/}/s/install \(.*\)/install \1 ifstat/' "$CHILD_SCRIPT"
 
 # 删除变量 sh_v 的定义
 sed -i '/^sh_v=/d' "$CHILD_SCRIPT"
