@@ -1,9 +1,9 @@
 name: Sync Kejilion SH Repo
 
 on:
-  push:
-    branches:
-      - main  # 自动触发的分支
+  # push:
+  #   branches:
+  #     - main  # 自动触发的分支
   workflow_dispatch:  # 支持手动触发
 
 jobs:
