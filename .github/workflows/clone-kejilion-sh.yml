@@ -3,7 +3,7 @@ name: Sync Kejilion SH
 on:
   push:
     branches:
-      - main  # 自动触发在主分支上的 push 操作
+      - main
   workflow_dispatch:  # 支持手动触发
 
 jobs:
