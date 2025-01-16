@@ -23,8 +23,12 @@ jobs:
       - name: Clone remote repository to target directory
         run: |
           git clone --depth 1 https://github.com/kejilion/sh.git kejiion/sh
+          
+      # 第四步：删除 kejiion/sh/.git 以避免被识别为子模块
+      - name: Remove .git to prevent submodule detection
+        run: rm -rf kejiion/sh/.git
 
-      # 第四步：提交并推送更改
+      # 第五步：提交并推送更改
       - name: Commit and push changes
         run: |
           git config user.name "Your Name"
