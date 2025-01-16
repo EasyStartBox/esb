@@ -39,12 +39,24 @@ jobs:
         rm -rf ./sh-temp  # 删除临时克隆的 sh-temp 目录
 
     # Step 5: Commit and push the changes to the repository
+    # Step 5: Commit and push the changes to the repository
     - name: Commit and push changes
       run: |
+        # Configure Git user
         git config --global user.name "Your GitHub Username"
         git config --global user.email "your-email@example.com"
-        git add ./kejilion/sh  # 只添加目标目录
+        
+        # Add only the target directory (kejilion/sh)
+        git add ./kejilion/sh
+        
+        # Remove the staged deletion of sh-temp (this prevents it from being included in the commit)
+        git restore --staged ./sh-temp
+        
+        # Commit the changes
         git commit -m "Copy content from kejilion/sh repository to /kejilion/sh"
+        
+        # Push the changes to the repository
         git push
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 使用自动提供的 GitHub Token
+
