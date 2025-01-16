@@ -1,64 +1,35 @@
-name: Copy Remote Repo to Subdirectory
+name: Sync Kejilion/sh to own repository
 
 on:
-  # 手动触发
-  workflow_dispatch:  # 通过 GitHub UI 手动触发
-
-  # 定时触发
-  schedule:
-    - cron: '0 0 * * *'  # 每天午夜12:00（UTC时间）
-
-  # 提交触发
   push:
     branches:
-      - main  # 当推送到 main 分支时触发
+      - main  # 可以指定你希望监听的分支，如 main 或其他分支
+  workflow_dispatch:  # 允许手动触发
 
 jobs:
-  copy-repo-to-subdir:
+  sync:
     runs-on: ubuntu-latest
-
+    
     steps:
-    # Step 1: Checkout the current repository
-    - name: Checkout the current repository
+    - name: Checkout the repository
       uses: actions/checkout@v3
-
-    # Step 2: Clone the remote repository (https://github.com/kejilion/sh.git)
+    
+    - name: Delete existing sh directory content
+      run: |
+        if [ -d "kejilion/sh" ]; then
+          rm -rf kejilion/sh/*  # 删除文件夹中的内容
+        else
+          mkdir -p kejilion/sh  # 如果文件夹不存在就创建
+        fi
+    
     - name: Clone the remote repository
       run: |
-        git clone https://github.com/kejilion/sh.git sh-temp  # 克隆远程仓库到临时目录
-
-    # Step 3: Copy contents to the target directory
-    - name: Copy the contents to the target directory
-      run: |
-        mkdir -p ./kejilion/sh  # 创建目标目录
-        cp -r ./sh-temp/* ./kejilion/sh/  # 复制内容到目标目录
-
-    # Step 4: Clean up temporary files (sh-temp directory)
-    - name: Clean up temporary files
-      run: |
-        rm -rf ./sh-temp  # 删除临时克隆的 sh-temp 目录
-
-    # Step 5: Commit and push the changes to the repository
-        # Step 5: Commit and push the changes to the repository
+        git clone --depth 1 https://github.com/kejilion/sh.git kejilion/sh
+    
     - name: Commit and push changes
       run: |
-        # Configure Git user
-        git config --global user.name "Your GitHub Username"
+        git config --global user.name "Your Name"
         git config --global user.email "your-email@example.com"
-        
-        # Ensure the correct files are added
-        git add ./kejilion/sh  # Only add the target directory (kejilion/sh)
-        
-        # Explicitly remove the staged deletion of sh-temp
-        git restore --staged sh-temp  # Removes the staged deletion of sh-temp
-        
-        # Check the status to verify what is being staged for commit
-        git status
-        
-        # Commit the changes if there are any
-        git commit -m "Copy content from kejilion/sh repository to /kejilion/sh" || echo "No changes to commit"
-        
-        # Push the changes to the repository
-        git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub token for authentication
+        git add kejilion/sh
+        git commit -m "Sync kejilion/sh to the repository"
+        git push origin main  # 可以调整为合适的分支
