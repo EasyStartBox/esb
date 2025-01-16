@@ -35,7 +35,7 @@ trap cleanup EXIT
 
 kejilion_sh() { 
     # 最小高度要求
-    local min_height=33  # 最小高度需求，包含菜单和底部提示区域
+    local min_height=34  # 最小高度需求，包含菜单和底部提示区域
 
     # 初始化 end_line
     local end_line=0
