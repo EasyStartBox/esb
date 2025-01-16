@@ -23,10 +23,10 @@ jobs:
             rm -rf ./kejilion/sh
           fi
 
-      # Step 3: 克隆 kejilion/sh 仓库
-      - name: Clone kejilion/sh repository
+      # Step 3: 克隆 kejilion/sh 仓库及其子模块
+      - name: Clone kejilion/sh repository and submodules
         run: |
-          git clone https://github.com/kejilion/sh.git ./kejilion/sh
+          git clone --recursive https://github.com/kejilion/sh.git ./kejilion/sh
 
       # Step 4: 提交更改到当前仓库
       - name: Push changes to this repository
