@@ -5,6 +5,14 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+#========================
+#==代理和全局参数==
+
+canshu="default"
+permission_granted="false"
+ENABLE_STATS="true"
+
+
 quanju_canshu() {
 if [ "$canshu" = "CN" ]; then
 	zhushi=0
@@ -14,11 +22,30 @@ elif [ "$canshu" = "V6" ]; then
 	gh_proxy="https://gh.kejilion.pro/"
 else
 	zhushi=1  # 0 表示执行，1 表示不执行
-	gh_proxy=""
+	gh_proxy="https://"
 fi
 
 }
 quanju_canshu
+
+
+
+# 定义一个函数来执行命令
+run_command() {
+	if [ "$zhushi" -eq 0 ]; then
+		"$@"
+	fi
+}
+
+
+
+
+#==代理和全局参数==结束
+
+
+#=======================
+
+
 
 # === 配置部分 ===
 
