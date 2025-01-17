@@ -38,8 +38,9 @@ kejilion_update() {
     echo "------------------------"
 
     # 下载并显示最新的35条日志
-    curl -s "${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/kejilion_sh_log.txt" | tail -n 35
-
+    # curl -s "${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/kejilion_sh_log.txt" | tail -n 35
+    curl -s "https://raw.githubusercontent.com/kejilion/sh/main/kejilion_sh_log.txt" | tail -n 35
+    
     # 定义远程 config.yml 的 URL
     local remote_config_url="https://raw.githubusercontent.com/EasyStartBox/esb/main/config/patch_sh/config.yml"
     local local_config_file="$DOWNLOAD_DIR/config.yml"
