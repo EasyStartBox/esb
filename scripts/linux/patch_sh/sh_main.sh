@@ -5,7 +5,20 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-gh_proxy="https://gh.kejilion.pro/"
+quanju_canshu() {
+if [ "$canshu" = "CN" ]; then
+	zhushi=0
+	gh_proxy="https://gh.kejilion.pro/"
+elif [ "$canshu" = "V6" ]; then
+	zhushi=1
+	gh_proxy="https://gh.kejilion.pro/"
+else
+	zhushi=1  # 0 表示执行，1 表示不执行
+	gh_proxy=""
+fi
+
+}
+quanju_canshu
 
 # === 配置部分 ===
 
