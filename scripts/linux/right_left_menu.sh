@@ -34,19 +34,19 @@ trap cleanup EXIT
 
 # 定义菜单项
 left_menu=(
-    "1. 系统信息查询"
+    "a3. 系统信息查询"
     "2. 系统更新"
-    "3. 系统清理"
-    "4. Docker管理"
+    "333. 系统清理"
+    "e. Docker管理"
     "5. 脚本更新"
 )
 
 right_menu=(
-    "a. 网络设置"
+    "1. 网络设置"
     "b. 资源监控"
     "c. 安全检查"
     "d. 服务管理"
-    "e. 数据备份"
+    "93. 数据备份"
 )
 
 # 对应的操作函数
@@ -68,38 +68,47 @@ actions_right=(
 
 # 测试函数
 linux_ps() {
+    clear
     echo "系统信息展示"
 }
 
 linux_update() {
+    clear
     echo "系统更新中..."
 }
 
 linux_clean() {
+    clear
     echo "系统清理中..."
 }
 
 linux_docker() {
+    clear
     echo "Docker 管理中..."
 }
 
 network_config() {
+    clear
     echo "网络设置..."
 }
 
 resource_monitor() {
+    clear
     echo "资源监控中..."
 }
 
 security_check() {
+    clear
     echo "安全检查中..."
 }
 
 service_management() {
+    clear
     echo "服务管理中..."
 }
 
 data_backup() {
+    clear
     echo "数据备份中..."
 }
 
@@ -138,11 +147,11 @@ display_dynamic_info() {
         fi
 
         # 使用 tput 定位并更新动态信息
-        tput cup 1 0
-        echo -e "${gl_orange}$cpu${gl_reset}"
         tput cup 2 0
-        echo -e "${gl_orange}$memory${gl_reset}"
+        echo -e "${gl_orange}$cpu${gl_reset}"
         tput cup 3 0
+        echo -e "${gl_orange}$memory${gl_reset}"
+        tput cup 4 0
         echo -e "${gl_orange}$net${gl_reset}"
 
         sleep 1
@@ -160,6 +169,17 @@ DISPLAY_PID=$!
 # 绘制菜单
 draw_menu() {
     tput clear
+
+    tput cup 1 0
+    echo -e "=======超级菜单======="
+    # 先绘制动态信息区域，确保不等待子进程延迟绘制
+    tput cup 2 0  # 固定动态信息输出位置
+    echo -e "${gl_orange}CPU占用: 加载中...${gl_reset}"
+    tput cup 3 0
+    echo -e "${gl_orange}内存占用: 加载中...${gl_reset}"
+    tput cup 4 0
+    echo -e "${gl_orange}网络流量: 加载中...${gl_reset}"
+
 
     # 绘制左侧菜单
     for i in "${!left_menu[@]}"; do
@@ -213,6 +233,220 @@ update_option() {
 # 主逻辑
 tput civis  # 隐藏光标
 draw_menu
+# while true; do
+#     read -rsn1 input  # 读取用户输入
+
+#     case "$input" in
+#         $'\x1b')  # 方向键输入
+#             read -rsn2 -t 0.1 input
+#             case "$input" in
+#                 "[A")  # 上方向键
+#                     old_row=$current_row
+#                     ((current_row--))
+#                     if [ "$current_row" -lt 0 ]; then
+#                         current_row=$(( ${#left_menu[@]} - 1 ))
+#                     fi
+#                     update_option "$old_row" "$current_col"
+#                     update_option "$current_row" "$current_col"
+#                     ;;
+#                 "[B")  # 下方向键
+#                     old_row=$current_row
+#                     ((current_row++))
+#                     if [ "$current_row" -ge "${#left_menu[@]}" ]; then
+#                         current_row=0
+#                     fi
+#                     update_option "$old_row" "$current_col"
+#                     update_option "$current_row" "$current_col"
+#                     ;;
+#                 "[C")  # 右方向键
+#                     current_col=1
+#                     update_option "$current_row" 0
+#                     update_option "$current_row" "$current_col"
+#                     ;;
+#                 "[D")  # 左方向键
+#                     current_col=0
+#                     update_option "$current_row" 1
+#                     update_option "$current_row" "$current_col"
+#                     ;;
+#             esac
+#             ;;
+#         "")  # Enter 键
+#             # 终止动态信息子进程
+#             kill "$DYNAMIC_PID" 2>/dev/null
+#             kill "$DISPLAY_PID" 2>/dev/null
+
+
+#             if [ "$current_col" -eq 0 ]; then
+#                 eval "${actions_left[$current_row]}"  # 执行左侧菜单对应的操作
+#             else
+#                 eval "${actions_right[$current_row]}"  # 执行右侧菜单对应的操作
+#             fi
+
+            
+
+#             echo -e "\n\033[1;32m操作完成，请按任意键返回菜单...\033[0m"
+#             read -rsn1  # 等待按任意键
+
+#             # 重新启动动态信息子进程
+#             update_dynamic_info &
+#             DYNAMIC_PID=$!
+#             display_dynamic_info &
+#             DISPLAY_PID=$!
+
+#             draw_menu
+#             ;;
+#         [0-9a-z])  # 数字或字母选择
+#             old_row=$current_row
+#             if [[ "$input" =~ [a-z] ]]; then
+#                 # 字母选择右侧菜单
+#                 if [ "$current_col" -ne 1 ]; then
+#                     current_col=1
+#                     update_option "$old_row" 0
+#                     update_option "$current_row" "$current_col"
+#                 fi
+#                 for i in "${!right_menu[@]}"; do
+#                     if [[ "${right_menu[$i]}" == "$input"* ]]; then
+#                         current_row=$i
+#                         break
+#                     fi
+#                 done
+#             else
+#                 # 数字选择左侧菜单
+#                 if [ "$current_col" -ne 0 ]; then
+#                     current_col=0
+#                     update_option "$old_row" 1
+#                     update_option "$current_row" "$current_col"
+#                 fi
+#                 for i in "${!left_menu[@]}"; do
+#                     if [[ "${left_menu[$i]}" == "$input"* ]]; then
+#                         current_row=$i
+#                         break
+#                     fi
+#                 done
+#             fi
+#             update_option "$old_row" "$current_col"
+#             update_option "$current_row" "$current_col"
+#             ;;
+#         *)
+#             echo -e "\n\033[1;31m无效的输入！\033[0m"
+#             sleep 1
+#             draw_menu
+#             ;;
+#     esac
+# done
+# while true; do
+#     read -rsn1 input  # 读取用户输入
+
+#     case "$input" in
+#         $'\x1b')  # 方向键输入
+#             read -rsn2 -t 0.1 input
+#             case "$input" in
+#                 "[A")  # 上方向键
+#                     old_row=$current_row
+#                     ((current_row--))
+#                     if [ "$current_row" -lt 0 ]; then
+#                         current_row=$(( ${#left_menu[@]} - 1 ))
+#                     fi
+#                     update_option "$old_row" "$current_col"
+#                     update_option "$current_row" "$current_col"
+#                     ;;
+#                 "[B")  # 下方向键
+#                     old_row=$current_row
+#                     ((current_row++))
+#                     if [ "$current_row" -ge "${#left_menu[@]}" ]; then
+#                         current_row=0
+#                     fi
+#                     update_option "$old_row" "$current_col"
+#                     update_option "$current_row" "$current_col"
+#                     ;;
+#                 "[C")  # 右方向键
+#                     current_col=1
+#                     update_option "$current_row" 0
+#                     update_option "$current_row" "$current_col"
+#                     ;;
+#                 "[D")  # 左方向键
+#                     current_col=0
+#                     update_option "$current_row" 1
+#                     update_option "$current_row" "$current_col"
+#                     ;;
+#             esac
+#             ;;
+#         "")  # Enter 键
+#             # 终止动态信息子进程
+#             kill "$DYNAMIC_PID" 2>/dev/null
+#             kill "$DISPLAY_PID" 2>/dev/null
+
+#             if [ "$current_col" -eq 0 ]; then
+#                 eval "${actions_left[$current_row]}"  # 执行左侧菜单对应的操作
+#             else
+#                 eval "${actions_right[$current_row]}"  # 执行右侧菜单对应的操作
+#             fi
+
+#             echo -e "\n\033[1;32m操作完成，请按任意键返回菜单...\033[0m"
+#             read -rsn1  # 等待按任意键
+
+#             # 重新启动动态信息子进程
+#             update_dynamic_info &
+#             DYNAMIC_PID=$!
+#             display_dynamic_info &
+#             DISPLAY_PID=$!
+
+#             draw_menu
+#             ;;
+#         [0-9a-z])  # 数字或字母选择
+#             old_row=$current_row
+#             found=false
+
+#             # 检查左侧菜单
+#             for i in "${!left_menu[@]}"; do
+#                 if [[ "${left_menu[$i]}" == "$input"* ]]; then
+#                     if [ "$current_col" -ne 0 ]; then
+#                         current_col=0
+#                         update_option "$old_row" 1
+#                     fi
+#                     current_row=$i
+#                     found=true
+#                     break
+#                 fi
+#             done
+
+#             # 如果未匹配左侧菜单，则检查右侧菜单
+#             if [ "$found" = false ]; then
+#                 for i in "${!right_menu[@]}"; do
+#                     if [[ "${right_menu[$i]}" == "$input"* ]]; then
+#                         if [ "$current_col" -ne 1 ]; then
+#                             current_col=1
+#                             update_option "$old_row" 0
+#                         fi
+#                         current_row=$i
+#                         found=true
+#                         break
+#                     fi
+#                 done
+#             fi
+
+#             # 如果找到匹配项，则更新选项
+#             if [ "$found" = true ]; then
+#                 update_option "$old_row" "$current_col"
+#                 update_option "$current_row" "$current_col"
+#             else
+#                 echo -e "\n\033[1;31m未找到匹配项！\033[0m"
+#                 sleep 1
+#                 draw_menu
+#             fi
+#             ;;
+#         *)
+#             echo -e "\n\033[1;31m无效的输入！\033[0m"
+#             sleep 1
+#             draw_menu
+#             ;;
+#     esac
+# done
+
+
+
+
+input_buffer=""
 while true; do
     read -rsn1 input  # 读取用户输入
 
@@ -251,11 +485,16 @@ while true; do
             esac
             ;;
         "")  # Enter 键
+            # 终止动态信息子进程
+            kill "$DYNAMIC_PID" 2>/dev/null
+            kill "$DISPLAY_PID" 2>/dev/null
+
             if [ "$current_col" -eq 0 ]; then
                 eval "${actions_left[$current_row]}"  # 执行左侧菜单对应的操作
             else
                 eval "${actions_right[$current_row]}"  # 执行右侧菜单对应的操作
             fi
+
             echo -e "\n\033[1;32m操作完成，请按任意键返回菜单...\033[0m"
             read -rsn1  # 等待按任意键
 
@@ -268,36 +507,65 @@ while true; do
             draw_menu
             ;;
         [0-9a-z])  # 数字或字母选择
-            old_row=$current_row
-            if [[ "$input" =~ [a-z] ]]; then
-                # 字母选择右侧菜单
-                if [ "$current_col" -ne 1 ]; then
-                    current_col=1
-                    update_option "$old_row" 0
-                    update_option "$current_row" "$current_col"
-                fi
-                for i in "${!right_menu[@]}"; do
-                    if [[ "${right_menu[$i]}" == "$input"* ]]; then
-                        current_row=$i
-                        break
-                    fi
-                done
+            if [ -n "$input_buffer" ]; then
+                # 如果缓冲区已有输入，组合输入内容
+                input_buffer+="$input"
+                full_input="$input_buffer"
+                input_buffer=""  # 清空缓冲区
             else
-                # 数字选择左侧菜单
-                if [ "$current_col" -ne 0 ]; then
-                    current_col=0
-                    update_option "$old_row" 1
-                    update_option "$current_row" "$current_col"
+                # 第一次按键，存入缓冲区并等待后续输入
+                input_buffer="$input"
+                read -rsn1 -t 0.5 next_input  # 等待0.5秒查看是否有后续输入
+                if [ -n "$next_input" ]; then
+                    input_buffer+="$next_input"
+                    full_input="$input_buffer"
+                    input_buffer=""  # 清空缓冲区
+                else
+                    full_input="$input_buffer"
+                    input_buffer=""
                 fi
-                for i in "${!left_menu[@]}"; do
-                    if [[ "${left_menu[$i]}" == "$input"* ]]; then
+            fi
+
+            old_row=$current_row
+            found=false
+
+            # 检查左侧菜单
+            for i in "${!left_menu[@]}"; do
+                if [[ "${left_menu[$i]}" == "$full_input"* ]]; then
+                    if [ "$current_col" -ne 0 ]; then
+                        current_col=0
+                        update_option "$old_row" 1
+                    fi
+                    current_row=$i
+                    found=true
+                    break
+                fi
+            done
+
+            # 如果未匹配左侧菜单，则检查右侧菜单
+            if [ "$found" = false ]; then
+                for i in "${!right_menu[@]}"; do
+                    if [[ "${right_menu[$i]}" == "$full_input"* ]]; then
+                        if [ "$current_col" -ne 1 ]; then
+                            current_col=1
+                            update_option "$old_row" 0
+                        fi
                         current_row=$i
+                        found=true
                         break
                     fi
                 done
             fi
-            update_option "$old_row" "$current_col"
-            update_option "$current_row" "$current_col"
+
+            # 如果找到匹配项，则更新选项
+            if [ "$found" = true ]; then
+                update_option "$old_row" "$current_col"
+                update_option "$current_row" "$current_col"
+            else
+                echo -e "\n\033[1;31m未找到匹配项！\033[0m"
+                sleep 1
+                draw_menu
+            fi
             ;;
         *)
             echo -e "\n\033[1;31m无效的输入！\033[0m"
@@ -306,3 +574,6 @@ while true; do
             ;;
     esac
 done
+
+
+
