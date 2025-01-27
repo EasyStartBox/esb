@@ -21,7 +21,7 @@ SHARED_FILE="/tmp/system_info.txt"
 
 left_menu=(
     "a3. 系统信息查询"
-    "2. 系统更新"
+    "a2. 系统更新"
     "333. 系统清理"
     "e. Docker管理"
     "5. 脚本更新"
@@ -30,8 +30,8 @@ left_menu=(
 right_menu=(
     "1. 网络设置"
     "b. 资源监控"
-    "c. 安全检查"
-    "d. 服务管理"
+    "3. 安全检查"
+    "D. 服务管理"
     "93. 数据备份"
 )
 
@@ -126,38 +126,6 @@ disable_mouse() {
 
 # 修正：根据 MOUSE_MENU_OFFSET 调整鼠标点击行  
 #  如果点击时对应的 menu_row 比预期少1或多1，改 MOUSE_MENU_OFFSET 即可
-# parse_mouse_event() {
-#     local data="$1"
-#     local -i button=$(( $(printf '%d' "'${data:0:1}") - 32 ))
-#     local -i mouse_col=$(( $(printf '%d' "'${data:1:1}") - 32 ))
-#     local -i mouse_row=$(( $(printf '%d' "'${data:2:1}") - 32 ))
-
-#     # 仅处理左键按下 button=0 (有的终端下 button=32 表示释放, 需测试)
-#     if (( button == 0 )); then
-#         # 判断鼠标是否落在菜单行范围
-#         # left_menu: 行 [MOUSE_MENU_OFFSET .. MOUSE_MENU_OFFSET + len(left_menu)-1]
-#         # right_menu: 行同样范围，但 col >= 20
-#         if (( mouse_row >= MOUSE_MENU_OFFSET && mouse_row < MOUSE_MENU_OFFSET + ${#left_menu[@]} )); then
-#             local new_row=$((mouse_row - MOUSE_MENU_OFFSET))
-#             local new_col
-#             if (( mouse_col < 20 )); then
-#                 new_col=0  # 左栏
-#             elif (( mouse_col < 40 )); then
-#                 new_col=1  # 右栏
-#             else
-#                 return  # 超出右栏可点击区域
-#             fi
-#             # 更新焦点
-#             local old_row=$current_row
-#             local old_col=$current_col
-#             current_row=$new_row
-#             current_col=$new_col
-#             update_option "$old_row" "$old_col"
-#             update_option "$current_row" "$current_col"
-#         fi
-#     fi
-# }
-
 parse_mouse_event() {
     local data="$1"
     local -i button=$(( $(printf '%d' "'${data:0:1}") - 32 ))
@@ -188,11 +156,12 @@ parse_mouse_event() {
     fi
 }
 
-
-
 ########################################
 # 5. 绘制与更新
 ########################################
+
+
+
 
 draw_menu() {
     tput clear
@@ -200,9 +169,17 @@ draw_menu() {
     echo -e "=======超级菜单======="
 
     # 动态信息区域（2~4行）
-    tput cup 2 0; echo -e "${gl_orange}CPU占用: 加载中...${gl_reset}"
-    tput cup 3 0; echo -e "${gl_orange}内存占用: 加载中...${gl_reset}"
-    tput cup 4 0; echo -e "${gl_orange}网络流量: 加载中...${gl_reset}"
+    tput cup 2 0 
+    echo -e "${gl_orange}CPU占用: 加载中...${gl_reset}"
+    echo -e "${gl_orange}CPU占用: 加载中...${gl_reset}"
+    tput cup 3 0 
+    echo -e "${gl_orange}内存占用: 加载中...${gl_reset}"
+    echo -e "${gl_orange}内存占用: 加载中...${gl_reset}"
+    tput cup 4 0 
+    echo -e "${gl_orange}网络流量: 加载中...${gl_reset}"
+    echo -e "${gl_orange}网络流量: 加载中...${gl_reset}"
+
+
 
     # 绘制左侧菜单(从第5行开始)
     for i in "${!left_menu[@]}"; do
@@ -228,11 +205,13 @@ draw_menu() {
     tput cup $((5 + ${#left_menu[@]})) 0
     echo -e "${gl_kjlan}------------------------${gl_bai}"
     tput cup $((6 + ${#left_menu[@]})) 0
-    echo -e "${gl_kjlan}使用上下方向键选择菜单项${gl_bai}"
+    echo -e "${gl_kjlan}使用上下左右方向键选择${gl_bai}"
     tput cup $((7 + ${#left_menu[@]})) 0
-    echo -e "${gl_kjlan}左右方向键切换列${gl_bai}"
+    echo -e "${gl_kjlan}半秒内使用数字和字母组合快速选择${gl_bai}"
     tput cup $((8 + ${#left_menu[@]})) 0
-    echo -e "${gl_kjlan}按 Enter 回车确认选择${gl_bai}"
+    echo -e "${gl_kjlan}或者鼠标点击选择(部分终端不支持)${gl_bai}"
+    tput cup $((9 + ${#left_menu[@]})) 0
+    echo -e "${gl_kjlan}双击 Enter 回车确认选择${gl_bai}"
 }
 
 update_option() {
@@ -293,15 +272,15 @@ display_dynamic_info() {
             net="网络流量: 加载中..."
         fi
 
-        tput cup 2 0; echo -e "${gl_orange}${cpu}            ${gl_reset}"
-        tput cup 3 0; echo -e "${gl_orange}${memory}               ${gl_reset}"
-        tput cup 4 0; echo -e "${gl_orange}${net}               ${gl_reset}"
+        tput cup 2 0; echo -e "${gl_orange}${cpu}${gl_reset}"
+        tput cup 3 0; echo -e "${gl_orange}${memory}${gl_reset}"
+        tput cup 4 0; echo -e "${gl_orange}${net}${gl_reset}"
         sleep 1
     done
 }
 
 ########################################
-# 7. 主循环 + 解决你提到的问题
+# 7. 主循环 
 ########################################
 
 # 清理函数
@@ -316,6 +295,7 @@ cleanup() {
     exit
 }
 trap cleanup EXIT
+
 
 # 启动子进程
 update_dynamic_info &
@@ -346,7 +326,7 @@ while true; do
             delta=$(awk -v now="$now" -v last="$last_input_time" 'BEGIN{print now - last}')
             if (( $(awk 'BEGIN{print('"$delta"' > 0.5)}') )); then
                 # 超过0.5秒没有新输入 -> 解析缓冲
-                parse_buffer="$input_buffer"
+                parse_buffer="${input_buffer//[[:space:]]/}"  # 修剪缓冲区
                 input_buffer=""
 
                 old_row=$current_row
@@ -354,7 +334,8 @@ while true; do
 
                 # 检查左菜单
                 for i in "${!left_menu[@]}"; do
-                    if [[ "${left_menu[$i]}" == "$parse_buffer"* ]]; then
+                    key=$(echo "${left_menu[$i]}" | cut -d'.' -f1)
+                    if [[ "$key" == "$parse_buffer" ]]; then
                         if [ "$current_col" -ne 0 ]; then
                             current_col=0
                             update_option "$old_row" 1
@@ -364,10 +345,12 @@ while true; do
                         break
                     fi
                 done
+
                 # 如果未找到，再查右菜单
                 if [ "$found" = false ]; then
                     for i in "${!right_menu[@]}"; do
-                        if [[ "${right_menu[$i]}" == "$parse_buffer"* ]]; then
+                        key=$(echo "${right_menu[$i]}" | cut -d'.' -f1)
+                        if [[ "$key" == "$parse_buffer" ]]; then
                             if [ "$current_col" -ne 1 ]; then
                                 current_col=1
                                 update_option "$old_row" 0
@@ -383,11 +366,14 @@ while true; do
                     update_option "$old_row" "$current_col"
                     update_option "$current_row" "$current_col"
                 else
-                    # 未找到匹配项
-                    tput cup $((10 + ${#left_menu[@]})) 0
-                    echo -e "\n\033[1;31m未找到匹配项 [${parse_buffer}]！\033[0m"
-                    sleep 1
-                    draw_menu
+                    # 仅在 parse_buffer 非空时显示错误消息
+                    if [ -n "$parse_buffer" ]; then
+                        # 未找到匹配项
+                        tput cup $((10 + ${#left_menu[@]})) 0
+                        echo -e "\n\033[1;31m未找到匹配项 [${parse_buffer}]！\033[0m"
+                        sleep 1
+                        draw_menu
+                    fi
                 fi
             fi
         fi
@@ -447,7 +433,7 @@ while true; do
             ;;
         # 将 \r 和 \n 都视为 Enter
         $'\r'|$'\n')
-            # **合并处理**: 先尝试丢弃后续的 \n 或 \r，避免 “双击”问题
+            # **合并处理**: 先尝试丢弃后续的 \n 或 \r，避免 “双击”问题 --实际未解决,暂时不解决了
             if IFS= read -rsn1 -t 0.01 next_enter; then
                 if [[ "$next_enter" != $'\r' && "$next_enter" != $'\n' ]]; then
                     # 若读到的并非换行符，则可能是其他按键，需要回退处理
@@ -457,15 +443,17 @@ while true; do
                 fi
             fi
 
-            # 解析尚未处理的缓冲
             if [ -n "$input_buffer" ]; then
-                parse_buffer="$input_buffer"
+                # 有输入缓冲，尝试解析并选择菜单项
+                parse_buffer="${input_buffer//[[:space:]]/}"  # 修剪缓冲区
                 input_buffer=""
                 old_row=$current_row
                 found=false
 
+                # 检查左菜单
                 for i in "${!left_menu[@]}"; do
-                    if [[ "${left_menu[$i]}" == "$parse_buffer"* ]]; then
+                    key=$(echo "${left_menu[$i]}" | cut -d'.' -f1)
+                    if [[ "$key" == "$parse_buffer" ]]; then
                         if [ "$current_col" -ne 0 ]; then
                             current_col=0
                             update_option "$old_row" 1
@@ -475,9 +463,12 @@ while true; do
                         break
                     fi
                 done
+
+                # 如果未找到，再查右菜单
                 if [ "$found" = false ]; then
                     for i in "${!right_menu[@]}"; do
-                        if [[ "${right_menu[$i]}" == "$parse_buffer"* ]]; then
+                        key=$(echo "${right_menu[$i]}" | cut -d'.' -f1)
+                        if [[ "$key" == "$parse_buffer" ]]; then
                             if [ "$current_col" -ne 1 ]; then
                                 current_col=1
                                 update_option "$old_row" 0
@@ -488,32 +479,63 @@ while true; do
                         fi
                     done
                 fi
+
                 if [ "$found" = true ]; then
                     update_option "$old_row" "$current_col"
                     update_option "$current_row" "$current_col"
+
+                    # 执行对应的操作
+                    kill "$DYNAMIC_PID" 2>/dev/null
+                    kill "$DISPLAY_PID" 2>/dev/null
+
+                    if [ "$current_col" -eq 0 ]; then
+                        eval "${actions_left[$current_row]}"
+                    else
+                        eval "${actions_right[$current_row]}"
+                    fi
+
+                    echo -e "\n\033[1;32m操作完成，请按任意键返回菜单...\033[0m"
+                    IFS= read -rsn1  # 等待任意键
+
+                    # 重新启动动态信息
+                    update_dynamic_info &
+                    DYNAMIC_PID=$!
+                    display_dynamic_info &
+                    DISPLAY_PID=$!
+
+                    draw_menu
+                else
+                    # 仅在 parse_buffer 非空时显示错误消息
+                    if [ -n "$parse_buffer" ]; then
+                        # 未找到匹配项
+                        tput cup $((10 + ${#left_menu[@]})) 0
+                        echo -e "\n\033[1;31m未找到匹配项 [${parse_buffer}]！\033[0m"
+                        sleep 1
+                        draw_menu
+                    fi
                 fi
-            fi
-
-            # 杀掉动态进程并执行对应操作
-            kill "$DYNAMIC_PID" 2>/dev/null
-            kill "$DISPLAY_PID" 2>/dev/null
-
-            if [ "$current_col" -eq 0 ]; then
-                eval "${actions_left[$current_row]}"
             else
-                eval "${actions_right[$current_row]}"
+                # 输入缓冲区为空，直接执行当前选中的菜单项
+                kill "$DYNAMIC_PID" 2>/dev/null
+                kill "$DISPLAY_PID" 2>/dev/null
+
+                if [ "$current_col" -eq 0 ]; then
+                    eval "${actions_left[$current_row]}"
+                else
+                    eval "${actions_right[$current_row]}"
+                fi
+
+                echo -e "\n\033[1;32m操作完成，请按任意键返回菜单...\033[0m"
+                IFS= read -rsn1  # 等待任意键
+
+                # 重新启动动态信息
+                update_dynamic_info &
+                DYNAMIC_PID=$!
+                display_dynamic_info &
+                DISPLAY_PID=$!
+
+                draw_menu
             fi
-
-            echo -e "\n\033[1;32m操作完成，请按任意键返回菜单...\033[0m"
-            IFS= read -rsn1  # 等待任意键
-
-            # 重新启动
-            update_dynamic_info &
-            DYNAMIC_PID=$!
-            display_dynamic_info &
-            DISPLAY_PID=$!
-
-            draw_menu
             ;;
         *)
             # 如果是字母或数字 -> 加入缓冲
@@ -530,13 +552,15 @@ while true; do
                 fi
                 last_input_time="$now"
             else
-                echo -e "\n\033[1;31m无效的输入: [$input]\033[0m"
+
+                # echo -e "\n\033[1;31m无效的输入: [$input]\033[0m"
                 sleep 1
-                draw_menu
+                # draw_menu
+                
+                #############
+                # 这里判断暂时这样,单击回车会提示"无效的输入: []",无解,双击回车发现进入功能没问题,那就让用户双击吧,主要是缓冲区导致的,使用缓冲区可以实现字母数字组合的快速定位
+                #############
             fi
             ;;
     esac
 done
-
-
-
