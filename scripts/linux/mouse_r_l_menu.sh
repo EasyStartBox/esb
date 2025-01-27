@@ -248,12 +248,12 @@ update_dynamic_info() {
         local net_info=$(ifstat -q 1 1 2>/dev/null | awk 'NR==3{printf "入站: %s KB/s 出站: %s KB/s", $1, $2}')
 
         {
-            echo "CPU占用: $cpu_usage%"
-            echo "内存占用: $memory_info"
+            echo "CPU占用: $cpu_usage%    "
+            echo "内存占用: $memory_info    "
             if [[ -z "$net_info" ]]; then
                 echo "网络流量: --"
             else
-                echo "网络流量: $net_info"
+                echo "网络流量: $net_info        "
             fi
         } > "$SHARED_FILE"
         sleep 1
