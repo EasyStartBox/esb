@@ -171,13 +171,13 @@ draw_menu() {
     # 动态信息区域（2~4行）
     tput cup 2 0 
     echo -e "${gl_orange}CPU占用: 加载中...${gl_reset}"
-    echo -e "${gl_orange}CPU占用: 加载中...${gl_reset}"
+
     tput cup 3 0 
     echo -e "${gl_orange}内存占用: 加载中...${gl_reset}"
-    echo -e "${gl_orange}内存占用: 加载中...${gl_reset}"
+
     tput cup 4 0 
     echo -e "${gl_orange}网络流量: 加载中...${gl_reset}"
-    echo -e "${gl_orange}网络流量: 加载中...${gl_reset}"
+
 
 
 
