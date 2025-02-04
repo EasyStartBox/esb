@@ -172,7 +172,7 @@ EOF
 
   # 执行 exec zsh，让当前 Bash 进程变为 Zsh
   info "安装完成，正在进入 Zsh..."
-  info p10k_configure "命令可以自定义zsh样式的主题"
+  info "键入${p10k_configure} 命令可以自定义zsh样式的主题"
   exec zsh
 
 elif [[ "$choice" == "2" ]]; then
