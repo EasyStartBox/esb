@@ -18,6 +18,9 @@ info() {
 warn() {
   echo -e "\033[33m[WARN]\033[0m $1"
 }
+p10k_configure() {
+  echo -e "\033[33m[p10k configure]\033[0m $1"
+}
 error() {
   echo -e "\033[31m[ERROR]\033[0m $1"
 }
@@ -169,7 +172,7 @@ EOF
 
   # 执行 exec zsh，让当前 Bash 进程变为 Zsh
   info "安装完成，正在进入 Zsh..."
-  info "p10k configure 命令可以自定义zsh样式的主题"
+  info p10k_configure "命令可以自定义zsh样式的主题"
   exec zsh
 
 elif [[ "$choice" == "2" ]]; then
