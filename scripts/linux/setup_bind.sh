@@ -32,70 +32,70 @@ fi
 
 
 
-# 选择操作：安装 BIND 或卸载 BIND
-echo -e "${YELLOW}请选择操作：${NC}"
-echo -e "${BLUE}1) 安装 BIND9 和相关工具${NC}"
-echo -e "${BLUE}2) 卸载 BIND9 和相关工具${NC}"
-read -rp "$(echo -e ${YELLOW}"请输入 1 或 2: ${NC}")" action
+# # 选择操作：安装 BIND 或卸载 BIND
+# echo -e "${YELLOW}请选择操作：${NC}"
+# echo -e "${BLUE}1) 安装 BIND9 和相关工具${NC}"
+# echo -e "${BLUE}2) 卸载 BIND9 和相关工具${NC}"
+# read -rp "$(echo -e ${YELLOW}"请输入 1 或 2: ${NC}")" action
 
-if [ "$action" == "1" ]; then
-  # 安装 BIND9 和相关工具
-  # 安装 BIND9 和相关工具
-  if ! dpkg-query -l | grep -q "^ii  bind9 "; then
-    # BIND 未安装
-    echo -e "${RED}BIND9 未安装，正在进行安装...${NC}"
-    read -rp "$(echo -e ${YELLOW}是否自动安装 BIND9 (及相关工具) ? (Y/n): ${NC}")" ans
-    # 默认选择 Y
-    ans=${ans:-Y}
-    if [[ "$ans" =~ ^[Yy]$ ]]; then
-      apt-get update
-      apt-get install -y bind9 bind9utils bind9-doc dnsutils
-      echo -e "${GREEN}BIND9 安装完成！${NC}"
-    else
-      echo -e "${RED}安装操作已取消。${NC}"
-      exit 1
-    fi
-  else
-    # BIND 已安装，但检查 /etc/bind 目录是否完整
-    if [ ! -d "/etc/bind" ]; then
-      echo -e "${RED}/etc/bind 目录不存在，BIND 安装不完整！${NC}"
-      read -rp "$(echo -e ${YELLOW}是否卸载 BIND 后重新安装？(Y/n): ${NC}")" ans
-      # 默认选择 Y
-      ans=${ans:-Y}
-      if [[ "$ans" =~ ^[Yy]$ ]]; then
-        apt-get remove --purge -y bind9 bind9utils bind9-doc dnsutils
-        apt-get autoremove -y
-        apt-get clean
-        echo -e "${GREEN}BIND 已成功卸载，正在重新安装...${NC}"
-        apt-get install -y bind9 bind9utils bind9-doc dnsutils
-        echo -e "${GREEN}BIND9 重新安装完成！${NC}"
-      else
-        echo -e "${RED}卸载和重装操作已取消。${NC}"
-        exit 1
-      fi
-    else
-      echo -e "${GREEN}BIND9 已安装并且配置完整。${NC}"
-    fi
-  fi
+# if [ "$action" == "1" ]; then
+#   # 安装 BIND9 和相关工具
+#   # 安装 BIND9 和相关工具
+#   if ! dpkg-query -l | grep -q "^ii  bind9 "; then
+#     # BIND 未安装
+#     echo -e "${RED}BIND9 未安装，正在进行安装...${NC}"
+#     read -rp "$(echo -e ${YELLOW}是否自动安装 BIND9 (及相关工具) ? (Y/n): ${NC}")" ans
+#     # 默认选择 Y
+#     ans=${ans:-Y}
+#     if [[ "$ans" =~ ^[Yy]$ ]]; then
+#       apt-get update
+#       apt-get install -y bind9 bind9utils bind9-doc dnsutils
+#       echo -e "${GREEN}BIND9 安装完成！${NC}"
+#     else
+#       echo -e "${RED}安装操作已取消。${NC}"
+#       exit 1
+#     fi
+#   else
+#     # BIND 已安装，但检查 /etc/bind 目录是否完整
+#     if [ ! -d "/etc/bind" ]; then
+#       echo -e "${RED}/etc/bind 目录不存在，BIND 安装不完整！${NC}"
+#       read -rp "$(echo -e ${YELLOW}是否卸载 BIND 后重新安装？(Y/n): ${NC}")" ans
+#       # 默认选择 Y
+#       ans=${ans:-Y}
+#       if [[ "$ans" =~ ^[Yy]$ ]]; then
+#         apt-get remove --purge -y bind9 bind9utils bind9-doc dnsutils
+#         apt-get autoremove -y
+#         apt-get clean
+#         echo -e "${GREEN}BIND 已成功卸载，正在重新安装...${NC}"
+#         apt-get install -y bind9 bind9utils bind9-doc dnsutils
+#         echo -e "${GREEN}BIND9 重新安装完成！${NC}"
+#       else
+#         echo -e "${RED}卸载和重装操作已取消。${NC}"
+#         exit 1
+#       fi
+#     else
+#       echo -e "${GREEN}BIND9 已安装并且配置完整。${NC}"
+#     fi
+#   fi
 
-  echo -e "${GREEN}BIND9 安装完成！${NC}"
+#   echo -e "${GREEN}BIND9 安装完成！${NC}"
 
-elif [ "$action" == "2" ]; then
-  # 卸载 BIND9 和相关工具
-  read -rp "$(echo -e ${YELLOW}"你确定要卸载 BIND9 和相关工具吗？此操作不可逆！（Y/n）: ${NC}")" ans
-  if [[ "$ans" =~ ^[Yy] ]]; then
-    apt-get remove --purge -y bind9 bind9utils bind9-doc dnsutils
-    apt-get autoremove -y
-    apt-get clean
-    echo -e "${GREEN}BIND9 和相关工具已成功卸载！${NC}"
-  else
-    echo -e "${RED}卸载操作已取消。${NC}"
-  fi
+# elif [ "$action" == "2" ]; then
+#   # 卸载 BIND9 和相关工具
+#   read -rp "$(echo -e ${YELLOW}"你确定要卸载 BIND9 和相关工具吗？此操作不可逆！（Y/n）: ${NC}")" ans
+#   if [[ "$ans" =~ ^[Yy] ]]; then
+#     apt-get remove --purge -y bind9 bind9utils bind9-doc dnsutils
+#     apt-get autoremove -y
+#     apt-get clean
+#     echo -e "${GREEN}BIND9 和相关工具已成功卸载！${NC}"
+#   else
+#     echo -e "${RED}卸载操作已取消。${NC}"
+#   fi
 
-else
-  echo -e "${RED}无效选择，退出脚本。${NC}"
-  exit 1
-fi
+# else
+#   echo -e "${RED}无效选择，退出脚本。${NC}"
+#   exit 1
+# fi
 
 
 # -------------------------------------------
