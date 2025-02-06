@@ -38,17 +38,33 @@ fi
 check_command() {
   local cmd=$1
   local pkg=$2
-  if ! command -v "$cmd" >/dev/null 2>&1; then
-    echo -e "${YELLOW}命令 '$cmd' 未安装，正在自动安装 $pkg ...${NC}"
-    apt-get update && apt-get install -y "$pkg"
-    if ! command -v "$cmd" >/dev/null 2>&1; then
-      echo -e "${RED}安装 $pkg 失败，退出脚本。${NC}"
-      exit 1
+  if command -v "$cmd" >/dev/null 2>&1; then
+    echo -e "${GREEN}检测到命令 '$cmd' 已安装.${NC}"
+    read -rp "$(echo -e ${YELLOW}"是否重新安装 $pkg? (Y/n，默认 n): ${NC}")" ans
+    if [[ "$ans" =~ ^[Yy] ]]; then
+      echo -e "${BLUE}正在强制重新安装 $pkg ...${NC}"
+      apt-get update && apt-get install --reinstall -y "$pkg"
+      if ! command -v "$cmd" >/dev/null 2>&1; then
+        echo -e "${RED}安装 $pkg 后未检测到 $cmd，请检查错误。${NC}"
+        exit 1
+      fi
     fi
   else
-    echo -e "${GREEN}检测到命令 '$cmd' 已安装.${NC}"
+    read -rp "$(echo -e ${YELLOW}"命令 '$cmd' 未安装，是否自动安装 $pkg? (Y/n，默认 Y): ${NC}")" ans
+    if [[ -z "$ans" || "$ans" =~ ^[Yy] ]]; then
+      echo -e "${BLUE}正在安装 $pkg ...${NC}"
+      apt-get update && apt-get install -y "$pkg"
+      if ! command -v "$cmd" >/dev/null 2>&1; then
+        echo -e "${RED}安装 $pkg 失败，退出脚本。${NC}"
+        exit 1
+      fi
+    else
+      echo -e "${RED}$cmd 是必须的，退出脚本。${NC}"
+      exit 1
+    fi
   fi
 }
+
 
 
 
