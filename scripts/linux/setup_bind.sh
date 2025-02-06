@@ -30,8 +30,6 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-
-
 # -------------------------------------------
 # 函数：检查命令是否存在，若存在询问是否重新安装
 # 参数1：命令名
@@ -42,16 +40,22 @@ check_command() {
   local pkg=$2
   if command -v "$cmd" >/dev/null 2>&1; then
     echo -e "${GREEN}检测到命令 '$cmd' 已安装.${NC}"
+    read -rp "$(echo -e ${YELLOW}"是否重新安装 $pkg? (Y/n): ${NC}")" ans
+    if [[ "$ans" =~ ^[Yy] ]]; then
+      echo -e "${BLUE}正在重新安装 $pkg ...${NC}"
+      apt-get install --reinstall -y "$pkg"
+    fi
   else
-    echo -e "${YELLOW}命令 '$cmd' 未安装，正在安装 $pkg ...${NC}"
-    apt-get install -y "$pkg" || { echo -e "${RED}安装 $pkg 失败，退出脚本！${NC}"; exit 1; }
+    read -rp "$(echo -e ${YELLOW}"命令 '$cmd' 未安装，是否自动安装 $pkg? (Y/n): ${NC}")" ans
+    if [[ "$ans" =~ ^[Yy] ]]; then
+      echo -e "${BLUE}正在安装 $pkg ...${NC}"
+      apt-get install -y "$pkg"
+    else
+      echo -e "${RED}$cmd 是必须的，退出脚本。${NC}"
+      exit 1
+    fi
   fi
 }
-
-
-
-
-
 
 # -------------------------------------------
 # 检查必需的命令
@@ -59,20 +63,17 @@ check_command() {
 echo -e "${GREEN}检测所需命令...${NC}"
 check_command curl curl
 check_command dig dnsutils
-check_command named-checkconf bind9-host  # bind9 包含 BIND 工具，通常 named-checkconf 在 /usr/sbin 中
-
-# 确保 /usr/sbin 在 PATH 中
-if [[ ":$PATH:" != *":/usr/sbin:"* ]]; then
-  export PATH=$PATH:/usr/sbin
-fi
-check_command named-checkzone bind9
+# 修正 named-checkconf 的检测路径和包名
+check_command /usr/sbin/named-checkconf bind9  # bind9 包含 named-checkconf
+check_command /usr/sbin/named-checkzone bind9  # 同样修正 named-checkzone
 
 # 检查 /etc/bind 目录是否存在，否则提示安装 bind9
 if [ ! -d "/etc/bind" ]; then
   echo -e "${RED}/etc/bind 目录不存在，BIND 似乎未正确安装！${NC}"
   read -rp "$(echo -e ${YELLOW}"是否自动安装 bind9 (及相关工具) ? (Y/n): ${NC}")" ans
   if [[ "$ans" =~ ^[Yy] ]]; then
-    apt-get install -y bind9 dnsutils
+    # 安装完整的 BIND 工具链
+    apt-get install -y bind9 bind9utils bind9-doc dnsutils
   else
     echo -e "${RED}BIND 是必须的，退出脚本。${NC}"
     exit 1
