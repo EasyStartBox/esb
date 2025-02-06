@@ -38,7 +38,7 @@ read -rp "$(echo -e ${YELLOW}"请输入 1 或 2: ${NC}")" action
 
 if [ "$action" == "1" ]; then
   # 安装 BIND9 和相关工具
-
+  # 安装 BIND9 和相关工具
   if ! dpkg-query -l | grep -q "^ii  bind9 "; then
     # BIND 未安装
     echo -e "${RED}BIND9 未安装，正在进行安装...${NC}"
@@ -86,17 +86,14 @@ elif [ "$action" == "2" ]; then
     apt-get autoremove -y
     apt-get clean
     echo -e "${GREEN}BIND9 和相关工具已成功卸载！${NC}"
-    exit 1
   else
     echo -e "${RED}卸载操作已取消。${NC}"
-    exit 1
   fi
 
 else
   echo -e "${RED}无效选择，退出脚本。${NC}"
   exit 1
 fi
-
 
 # -------------------------------------------
 # 函数：检查命令是否存在，若存在询问是否重新安装
