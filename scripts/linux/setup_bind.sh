@@ -59,8 +59,10 @@ elif [ "$action" == "2" ]; then
     apt-get autoremove -y
     apt-get clean
     echo -e "${GREEN}BIND9 和相关工具已成功卸载！${NC}"
+    exit 1
   else
     echo -e "${RED}卸载操作已取消。${NC}"
+    exit 1
   fi
 
 else
@@ -100,7 +102,7 @@ check_command() {
 # 检查必需的命令
 # -------------------------------------------
 echo -e "${GREEN}检测所需命令...${NC}"
-check_command curl curl
+# check_command curl curl
 check_command dig dnsutils
 # 修正 named-checkconf 的检测路径和包名
 check_command /usr/sbin/named-checkconf bind9  # bind9 包含 named-checkconf
