@@ -36,7 +36,6 @@ echo -e "${BLUE}1) 安装 BIND9 和相关工具${NC}"
 echo -e "${BLUE}2) 卸载 BIND9 和相关工具${NC}"
 read -rp "$(echo -e ${YELLOW}"请输入 1 或 2: ${NC}")" action
 
-# 原脚本：
 if [ "$action" == "1" ]; then
   # 安装 BIND9 和相关工具
   if [ ! -d "/etc/bind" ]; then
@@ -54,17 +53,14 @@ if [ "$action" == "1" ]; then
 
 elif [ "$action" == "2" ]; then
   # 卸载 BIND9 和相关工具
-  read -rp "$(echo -e ${YELLOW}你确定要卸载 BIND9 和相关工具吗？此操作不可逆！（Y/n）: ${NC}")" ans
-  ans=${ans:-Y}  # 默认选择 Y
-  if [[ "$ans" =~ ^[Yy]$ ]]; then
+  read -rp "$(echo -e ${YELLOW}"你确定要卸载 BIND9 和相关工具吗？此操作不可逆！（Y/n）: ${NC}")" ans
+  if [[ "$ans" =~ ^[Yy] ]]; then
     apt-get remove --purge -y bind9 bind9utils bind9-doc dnsutils
     apt-get autoremove -y
     apt-get clean
     echo -e "${GREEN}BIND9 和相关工具已成功卸载！${NC}"
-    exit 0  # 正常退出
   else
     echo -e "${RED}卸载操作已取消。${NC}"
-    exit 0  # 正常退出
   fi
 
 else
