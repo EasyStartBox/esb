@@ -30,17 +30,6 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-# 检查 /etc/bind 目录是否存在，否则提示安装 bind9 套件
-if [ ! -d "/etc/bind" ]; then
-  echo -e "${RED}/etc/bind 目录不存在，BIND 似乎未正确安装！${NC}"
-  read -rp "$(echo -e ${YELLOW}"是否自动安装 bind9 bind9utils bind9-doc? (Y/n): ${NC}")" ans
-  if [[ "$ans" =~ ^[Yy] ]]; then
-    apt-get update && apt-get install -y bind9 bind9utils bind9-doc
-  else
-    echo -e "${RED}BIND 是必须的，退出脚本。${NC}"
-    exit 1
-  fi
-fi
 
 
 # -------------------------------------------
@@ -53,30 +42,12 @@ check_command() {
   local pkg=$2
   if command -v "$cmd" >/dev/null 2>&1; then
     echo -e "${GREEN}检测到命令 '$cmd' 已安装.${NC}"
-    read -rp "$(echo -e ${YELLOW}"是否重新安装 $pkg? (Y/n，默认 n): ${NC}")" ans
-    if [[ "$ans" =~ ^[Yy] ]]; then
-      echo -e "${BLUE}正在强制重新安装 $pkg ...${NC}"
-      apt-get update && apt-get install --reinstall -y "$pkg"
-      if ! command -v "$cmd" >/dev/null 2>&1; then
-        echo -e "${RED}安装 $pkg 后未检测到 $cmd，请检查错误。${NC}"
-        exit 1
-      fi
-    fi
   else
-    read -rp "$(echo -e ${YELLOW}"命令 '$cmd' 未安装，是否自动安装 $pkg? (Y/n，默认 Y): ${NC}")" ans
-    if [[ -z "$ans" || "$ans" =~ ^[Yy] ]]; then
-      echo -e "${BLUE}正在安装 $pkg ...${NC}"
-      apt-get update && apt-get install -y "$pkg"
-      if ! command -v "$cmd" >/dev/null 2>&1; then
-        echo -e "${RED}安装 $pkg 失败，退出脚本。${NC}"
-        exit 1
-      fi
-    else
-      echo -e "${RED}$cmd 是必须的，退出脚本。${NC}"
-      exit 1
-    fi
+    echo -e "${YELLOW}命令 '$cmd' 未安装，正在安装 $pkg ...${NC}"
+    apt-get install -y "$pkg" || { echo -e "${RED}安装 $pkg 失败，退出脚本！${NC}"; exit 1; }
   fi
 }
+
 
 
 
