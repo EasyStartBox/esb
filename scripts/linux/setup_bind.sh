@@ -51,7 +51,7 @@ if [ "$action" == "1" ]; then
       echo -e "${GREEN}BIND9 安装完成！${NC}"
     else
       echo -e "${RED}安装操作已取消。${NC}"
-      break
+      exit 1
     fi
   else
     # BIND 已安装，但检查 /etc/bind 目录是否完整
@@ -86,15 +86,15 @@ elif [ "$action" == "2" ]; then
     apt-get autoremove -y
     apt-get clean
     echo -e "${GREEN}BIND9 和相关工具已成功卸载！${NC}"
-    break
+    exit 1
   else
     echo -e "${RED}卸载操作已取消。${NC}"
-    break
+    exit 1
   fi
 
 else
   echo -e "${RED}无效选择，退出脚本。${NC}"
-  break
+  exit 1
 fi
 
 
