@@ -38,25 +38,15 @@ fi
 check_command() {
   local cmd=$1
   local pkg=$2
-  if command -v "$cmd" >/dev/null 2>&1; then
-    echo -e "${GREEN}检测到命令 '$cmd' 已安装.${NC}"
-  else
-    echo -e "${YELLOW}命令 '$cmd' 未安装，正在尝试安装 $pkg ...${NC}"
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    echo -e "${YELLOW}命令 '$cmd' 未安装，正在自动安装 $pkg ...${NC}"
     apt-get update && apt-get install -y "$pkg"
-    
-    # **安装后再次检查命令是否可用**
     if ! command -v "$cmd" >/dev/null 2>&1; then
-      echo -e "${RED}安装 $pkg 失败，但可能已经安装，检查 /usr/sbin ...${NC}"
-      
-      # **手动检查 /usr/sbin 下是否有这个命令**
-      if [ -x "/usr/sbin/$cmd" ]; then
-        echo -e "${GREEN}找到 $cmd 在 /usr/sbin/，添加到 PATH 并继续...${NC}"
-        export PATH=$PATH:/usr/sbin
-      else
-        echo -e "${RED}安装失败，且无法找到 $cmd，退出脚本。${NC}"
-        exit 1
-      fi
+      echo -e "${RED}安装 $pkg 失败，退出脚本。${NC}"
+      exit 1
     fi
+  else
+    echo -e "${GREEN}检测到命令 '$cmd' 已安装.${NC}"
   fi
 }
 
