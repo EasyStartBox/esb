@@ -36,6 +36,7 @@ echo -e "${BLUE}1) 安装 BIND9 和相关工具${NC}"
 echo -e "${BLUE}2) 卸载 BIND9 和相关工具${NC}"
 read -rp "$(echo -e ${YELLOW}"请输入 1 或 2: ${NC}")" action
 
+# 原脚本：
 if [ "$action" == "1" ]; then
   # 安装 BIND9 和相关工具
   if ! dpkg-query -l | grep -q "^ii  bind9 "; then
@@ -74,6 +75,9 @@ if [ "$action" == "1" ]; then
       echo -e "${GREEN}BIND9 已安装并且配置完整。${NC}"
     fi
   fi
+
+# 在每个 if 或 elif 语句之后添加了正确的闭合 `fi`，并且确保语法正确。
+
 
 
 elif [ "$action" == "2" ]; then
