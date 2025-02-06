@@ -74,50 +74,50 @@ fi
 # 参数1：命令名
 # 参数2：对应的软件包名称（用于 apt 安装）
 # -------------------------------------------
-# check_command() {
-#   local cmd=$1
-#   local pkg=$2
-#   if command -v "$cmd" >/dev/null 2>&1; then
-#     echo -e "${GREEN}检测到命令 '$cmd' 已安装.${NC}"
-#     read -rp "$(echo -e ${YELLOW}"是否重新安装 $pkg? (Y/n): ${NC}")" ans
-#     if [[ "$ans" =~ ^[Yy] ]]; then
-#       echo -e "${BLUE}正在重新安装 $pkg ...${NC}"
-#       apt-get install --reinstall -y "$pkg"
-#     fi
-#   else
-#     read -rp "$(echo -e ${YELLOW}"命令 '$cmd' 未安装，是否自动安装 $pkg? (Y/n): ${NC}")" ans
-#     if [[ "$ans" =~ ^[Yy] ]]; then
-#       echo -e "${BLUE}正在安装 $pkg ...${NC}"
-#       apt-get install -y "$pkg"
-#     else
-#       echo -e "${RED}$cmd 是必须的，退出脚本。${NC}"
-#       exit 1
-#     fi
-#   fi
-# }
+check_command() {
+  local cmd=$1
+  local pkg=$2
+  if command -v "$cmd" >/dev/null 2>&1; then
+    echo -e "${GREEN}检测到命令 '$cmd' 已安装.${NC}"
+    read -rp "$(echo -e ${YELLOW}"是否重新安装 $pkg? (Y/n): ${NC}")" ans
+    if [[ "$ans" =~ ^[Yy] ]]; then
+      echo -e "${BLUE}正在重新安装 $pkg ...${NC}"
+      apt-get install --reinstall -y "$pkg"
+    fi
+  else
+    read -rp "$(echo -e ${YELLOW}"命令 '$cmd' 未安装，是否自动安装 $pkg? (Y/n): ${NC}")" ans
+    if [[ "$ans" =~ ^[Yy] ]]; then
+      echo -e "${BLUE}正在安装 $pkg ...${NC}"
+      apt-get install -y "$pkg"
+    else
+      echo -e "${RED}$cmd 是必须的，退出脚本。${NC}"
+      exit 1
+    fi
+  fi
+}
 
 # -------------------------------------------
 # 检查必需的命令
 # -------------------------------------------
-# echo -e "${GREEN}检测所需命令...${NC}"
-# # check_command curl curl
-# check_command dig dnsutils
-# # 修正 named-checkconf 的检测路径和包名
-# check_command /usr/sbin/named-checkconf bind9  # bind9 包含 named-checkconf
-# check_command /usr/sbin/named-checkzone bind9  # 同样修正 named-checkzone
+echo -e "${GREEN}检测所需命令...${NC}"
+# check_command curl curl
+check_command dig dnsutils
+# 修正 named-checkconf 的检测路径和包名
+check_command /usr/sbin/named-checkconf bind9  # bind9 包含 named-checkconf
+check_command /usr/sbin/named-checkzone bind9  # 同样修正 named-checkzone
 
-# # 检查 /etc/bind 目录是否存在，否则提示安装 bind9
-# if [ ! -d "/etc/bind" ]; then
-#   echo -e "${RED}/etc/bind 目录不存在，BIND 似乎未正确安装！${NC}"
-#   read -rp "$(echo -e ${YELLOW}"是否自动安装 bind9 (及相关工具) ? (Y/n): ${NC}")" ans
-#   if [[ "$ans" =~ ^[Yy] ]]; then
-#     # 安装完整的 BIND 工具链
-#     apt-get install -y bind9 bind9utils bind9-doc dnsutils
-#   else
-#     echo -e "${RED}BIND 是必须的，退出脚本。${NC}"
-#     exit 1
-#   fi
-# fi
+# 检查 /etc/bind 目录是否存在，否则提示安装 bind9
+if [ ! -d "/etc/bind" ]; then
+  echo -e "${RED}/etc/bind 目录不存在，BIND 似乎未正确安装！${NC}"
+  read -rp "$(echo -e ${YELLOW}"是否自动安装 bind9 (及相关工具) ? (Y/n): ${NC}")" ans
+  if [[ "$ans" =~ ^[Yy] ]]; then
+    # 安装完整的 BIND 工具链
+    apt-get install -y bind9 bind9utils bind9-doc dnsutils
+  else
+    echo -e "${RED}BIND 是必须的，退出脚本。${NC}"
+    exit 1
+  fi
+fi
 
 # -------------------------------------------
 # 欢迎信息和用途说明
