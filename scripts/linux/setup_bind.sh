@@ -30,43 +30,76 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-# 检查 BIND 是否已安装
-if dpkg-query -l | grep -q '^ii  bind9 '; then
-  BIND_INSTALLED=true
-else
-  BIND_INSTALLED=false
-fi
+# 选择操作：安装 BIND 或卸载 BIND
+echo -e "${YELLOW}请选择操作：${NC}"
+echo -e "${BLUE}1) 安装 BIND9 和相关工具${NC}"
+echo -e "${BLUE}2) 卸载 BIND9 和相关工具${NC}"
+read -rp "$(echo -e ${YELLOW}"请输入 1 或 2: ${NC}")" action
 
-# 如果 BIND 已安装，但 /etc/bind 目录不存在，提示用户卸载并重新安装
-if [ "$BIND_INSTALLED" == true ] && [ ! -d "/etc/bind" ]; then
-  echo -e "${RED}/etc/bind 目录不存在，BIND 似乎未正确安装！${NC}"
-  read -rp "$(echo -e ${YELLOW}"是否卸载并重新安装 BIND9 (及相关工具) ? (Y/n): ${NC}")" ans
+if [ "$action" == "1" ]; then
+  # 安装 BIND9 和相关工具
+  # 检查 BIND 是否已安装
+  if dpkg-query -l | grep -q '^ii  bind9 '; then
+    BIND_INSTALLED=true
+  else
+    BIND_INSTALLED=false
+  fi
+  
+  # 如果 BIND 已安装，但 /etc/bind 目录不存在，提示用户卸载并重新安装
+  if [ "$BIND_INSTALLED" == true ] && [ ! -d "/etc/bind" ]; then
+    echo -e "${RED}/etc/bind 目录不存在，BIND 似乎未正确安装！${NC}"
+    read -rp "$(echo -e ${YELLOW}"是否卸载并重新安装 BIND9 (及相关工具) ? (Y/n): ${NC}")" ans
+    if [[ "$ans" =~ ^[Yy] ]]; then
+      # 卸载 BIND9 和相关工具
+      apt-get remove --purge -y bind9 bind9utils bind9-doc dnsutils
+      apt-get autoremove -y
+      apt-get clean
+  
+      # 重新安装 BIND9 和相关工具
+      apt-get update
+      apt-get install -y bind9 bind9utils bind9-doc dnsutils
+      echo -e "${GREEN}BIND9 已成功重新安装！${NC}"
+    else
+      echo -e "${RED}BIND 安装问题未解决，退出脚本。${NC}"
+      exit 1
+    fi
+  elif [ "$BIND_INSTALLED" == false ]; then
+    # 如果 BIND 没有安装，提示用户进行安装
+    read -rp "$(echo -e ${YELLOW}"BIND9 未安装，是否自动安装 bind9 (及相关工具) ? (Y/n): ${NC}")" ans
+    if [[ "$ans" =~ ^[Yy] ]]; then
+      apt-get update
+      apt-get install -y bind9 bind9utils bind9-doc dnsutils
+      echo -e "${GREEN}BIND9 安装完成！${NC}"
+    else
+      echo -e "${RED}BIND 是必须的，退出脚本。${NC}"
+      exit 1
+    fi
+  fi
+  echo -e "${GREEN}BIND9 安装完成！${NC}"
+
+elif [ "$action" == "2" ]; then
+  # 卸载 BIND9 和相关工具
+  read -rp "$(echo -e ${YELLOW}"你确定要卸载 BIND9 和相关工具吗？此操作不可逆！（Y/n）: ${NC}")" ans
   if [[ "$ans" =~ ^[Yy] ]]; then
-    # 卸载 BIND9 和相关工具
     apt-get remove --purge -y bind9 bind9utils bind9-doc dnsutils
     apt-get autoremove -y
     apt-get clean
+    echo -e "${GREEN}BIND9 和相关工具已成功卸载！${NC}"
+    exit 1
+  else
+    echo -e "${RED}卸载操作已取消。${NC}"
+    exit 1
+  fi
 
-    # 重新安装 BIND9 和相关工具
-    apt-get update
-    apt-get install -y bind9 bind9utils bind9-doc dnsutils
-    echo -e "${GREEN}BIND9 已成功重新安装！${NC}"
-  else
-    echo -e "${RED}BIND 安装问题未解决，退出脚本。${NC}"
-    exit 1
-  fi
-elif [ "$BIND_INSTALLED" == false ]; then
-  # 如果 BIND 没有安装，提示用户进行安装
-  read -rp "$(echo -e ${YELLOW}"BIND9 未安装，是否自动安装 bind9 (及相关工具) ? (Y/n): ${NC}")" ans
-  if [[ "$ans" =~ ^[Yy] ]]; then
-    apt-get update
-    apt-get install -y bind9 bind9utils bind9-doc dnsutils
-    echo -e "${GREEN}BIND9 安装完成！${NC}"
-  else
-    echo -e "${RED}BIND 是必须的，退出脚本。${NC}"
-    exit 1
-  fi
+else
+  echo -e "${RED}无效选择，退出脚本。${NC}"
+  exit 1
 fi
+
+
+
+
+
 
 # -------------------------------------------
 # 函数：检查命令是否存在，若存在询问是否重新安装
