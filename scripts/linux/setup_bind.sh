@@ -86,10 +86,10 @@ elif [ "$action" == "2" ]; then
     apt-get autoremove -y
     apt-get clean
     echo -e "${GREEN}BIND9 和相关工具已成功卸载！${NC}"
-    exit 0
+    exit 1
   else
     echo -e "${RED}卸载操作已取消。${NC}"
-    exit 0
+    exit 1
   fi
 
 else
