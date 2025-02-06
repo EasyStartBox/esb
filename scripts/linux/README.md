@@ -14,7 +14,11 @@ bash <(curl -s https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/l
 ```
 ***
 
-
+### BIND和简单管理bind-manager.py
+```bash
+curl -sL https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/setup_bind.sh | bash && wget -q https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/bind-manager.py -O bind-manager.py
+```
+***
 
 ### 使用 `curl` 或 `wget` 下载并执行例子
 
@@ -23,7 +27,7 @@ bash <(curl -s https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/l
    假设你要下载的脚本文件 URL 是 `https://raw.githubusercontent.com/username/repository/branch/script.sh`，你可以运行以下命令来下载并执行它：
 
    ```bash
-   curl -sL https://raw.githubusercontent.com/username/repository/branch/script.sh | bash
+   curl -sL https://raw.githubusercontent.com/username/repository/branch/script.sh | bash && curl -sL https://raw.githubusercontent.com/username/repository/branch/script.sh | bash
    ```
 
    这里的 `-sL` 参数是：
