@@ -106,18 +106,21 @@ echo ""
 # -------------------------------------------
 # 2. 获取本机公网 IP 并列出本机所有 IP（IPv4 和 IPv6）
 # -------------------------------------------
+# 获取公网 IP，并加入错误处理
 echo -e "${YELLOW}正在获取公网 IP...${NC}"
-AUTO_IPV4=$(curl -s ipv4.ip.sb)
-AUTO_IPV6=$(curl -s ipv6.ip.sb)
+AUTO_IPV4=$(curl -s ipv4.ip.sb || echo "无法获取公网IPv4")
+AUTO_IPV6=$(curl -s ipv6.ip.sb || echo "无法获取公网IPv6")
+
 echo -e "${YELLOW}自动检测到的公网 IPv4：${AUTO_IPV4}${NC}"
 echo -e "${YELLOW}自动检测到的公网 IPv6：${AUTO_IPV6}${NC}"
 echo ""
 
-# 提示用户选择希望使用的 IP 类型
+# 选择 IP 类型时加入默认选项
 echo -e "${YELLOW}请选择使用的 IP 类型：${NC}"
 echo -e "${BLUE}1) IPv4${NC}"
 echo -e "${BLUE}2) IPv6${NC}"
-read -rp "$(echo -e ${YELLOW}"请输入 1 或 2: ${NC}")" ip_type
+echo -e "${BLUE}3) 默认使用自动检测的 IP${NC}"
+read -rp "$(echo -e ${YELLOW}"请输入 1 或 2 或 3: ${NC}")" ip_type
 
 if [ "$ip_type" == "1" ]; then
   RECORD_TYPE="A"
@@ -153,6 +156,18 @@ elif [ "$ip_type" == "2" ]; then
       echo -e "${RED}无效选择，请重新选择！${NC}"
     fi
   done
+elif [ "$ip_type" == "3" ]; then
+  # 使用自动检测的公网 IP 作为默认
+  if [ -n "$AUTO_IPV4" ]; then
+    SELECTED_IP="$AUTO_IPV4"
+    RECORD_TYPE="A"
+  elif [ -n "$AUTO_IPV6" ]; then
+    SELECTED_IP="$AUTO_IPV6"
+    RECORD_TYPE="AAAA"
+  else
+    echo -e "${RED}无法自动获取公网 IP，请手动选择 IP 类型。${NC}"
+    exit 1
+  fi
 else
   echo -e "${RED}无效选择，退出脚本。${NC}"
   exit 1
@@ -212,17 +227,28 @@ echo ""
 # -------------------------------------------
 # 4. 检查 BIND 配置并重启服务
 # -------------------------------------------
-echo -e "${YELLOW}[步骤 4] 正在检查 BIND 配置...${NC}"
-named-checkconf
-named-checkzone "$ZONE_NAME" "$ZONE_FILE"
 
+echo -e "${YELLOW}[步骤 4] 正在检查 BIND 配置...${NC}"
+if ! named-checkconf; then
+  echo -e "${RED}BIND 配置文件有错误，请检查。${NC}"
+  exit 1
+fi
+
+if ! named-checkzone "$ZONE_NAME" "$ZONE_FILE"; then
+  echo -e "${RED}区域文件检查失败，请修正问题。${NC}"
+  exit 1
+fi
+
+# 重启 BIND 服务
 echo -e "${YELLOW}[步骤 4] 正在重启 BIND 服务...${NC}"
 systemctl restart bind9
 if systemctl status bind9 | grep -q "active (running)"; then
   echo -e "${GREEN}BIND 服务重启成功！${NC}"
 else
   echo -e "${RED}BIND 服务重启失败，请检查 bind9 安装状态。${NC}"
+  exit 1
 fi
+
 echo ""
 
 # -------------------------------------------
