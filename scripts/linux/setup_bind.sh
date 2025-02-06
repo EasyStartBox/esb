@@ -30,6 +30,19 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
+# 检查 /etc/bind 目录是否存在，否则提示安装 bind9 套件
+if [ ! -d "/etc/bind" ]; then
+  echo -e "${RED}/etc/bind 目录不存在，BIND 似乎未正确安装！${NC}"
+  read -rp "$(echo -e ${YELLOW}"是否自动安装 bind9 bind9utils bind9-doc? (Y/n): ${NC}")" ans
+  if [[ "$ans" =~ ^[Yy] ]]; then
+    apt-get update && apt-get install -y bind9 bind9utils bind9-doc
+  else
+    echo -e "${RED}BIND 是必须的，退出脚本。${NC}"
+    exit 1
+  fi
+fi
+
+
 # -------------------------------------------
 # 函数：检查命令是否存在，若存在询问是否重新安装
 # 参数1：命令名
@@ -64,6 +77,7 @@ check_command() {
     fi
   fi
 }
+
 
 
 
