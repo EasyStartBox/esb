@@ -16,7 +16,7 @@ bash <(curl -s https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/l
 
 ### BIND和简单管理bind-manager.py
 ```bash
-curl -sL https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/setup_bind.sh | bash && wget -q https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/bind-manager.py -O bind-manager.py
+mkdir -p bind && cd bind && curl -sL https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/setup_bind.sh | bash && wget -q https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/bind-manager.py -O bind-manager.py
 ```
 ***
 
