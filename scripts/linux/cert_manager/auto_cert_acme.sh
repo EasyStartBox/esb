@@ -180,43 +180,52 @@ fi
 # 调用 acme.sh --standalone 申请
 # 注意要确保此时外网 dig $full_domain 能解析到 $public_ip 且80端口可访问到此机
 echo "开始申请证书..."
-# acme.sh --set-default-ca --ca "https://acme-v02.api.letsencrypt.org/directory"
-sed -i 's|https://acme.zerossl.com/v2/DV90|https://acme-v02.api.letsencrypt.org/directory|' /root/.acme.sh/account.conf
 
+# 尝试使用 ZeroSSL 申请证书
 acme.sh --issue -d "$full_domain" --standalone --force
+
 if [ $? -eq 0 ]; then
     echo "证书申请成功。acme.sh 默认会自动续期。"
-    acme.sh --list | grep "$full_domain"
-    # 若需安装证书到系统路径，可手动执行：
-    # acme.sh --install-cert -d "$full_domain" \
-    #   --key-file /etc/ssl/${full_domain}.key \
-    #   --fullchain-file /etc/ssl/${full_domain}.crt
-
-    # 在证书申请成功后，添加以下代码将证书安装到指定目录
-    # 定义存储证书的目标路径
-    INSTALL_CERT_PATH="/root/cert/${full_domain}"
-    mkdir -p "$INSTALL_CERT_PATH"
-
-    # 确定证书存放的目录
-    CERT_DIR="/root/.acme.sh/${full_domain}_ecc"
-
-    # 将证书复制到目标目录
-    cp "${CERT_DIR}/fullchain.cer" "${INSTALL_CERT_PATH}/fullchain.pem"
-    cp "${CERT_DIR}/${full_domain}.key" "${INSTALL_CERT_PATH}/privkey.pem"
-
-    echo "证书已安装到: $INSTALL_CERT_PATH"
-    echo "证书文件: ${INSTALL_CERT_PATH}/fullchain.pem"
-    echo "私钥文件: ${INSTALL_CERT_PATH}/privkey.pem"
-    # 设置证书权限
-    chmod 644 "${INSTALL_CERT_PATH}/fullchain.pem"
-    chmod 644 "${INSTALL_CERT_PATH}/privkey.pem"
-
-    echo "证书安装完成。"
-    echo "手动删除证书: rm -rf ${INSTALL_CERT_PATH}"
-    echo "手动删除证书: rm -rf ${CERT_DIR}"
-
-
 else
-    echo "证书申请失败。请检查防火墙、DNS解析、80端口等。"
-    exit 1
+    # 如果 ZeroSSL 失败，切换到 Let's Encrypt
+    echo "ZeroSSL 证书申请失败，正在尝试使用 Let's Encrypt ..."
+    acme.sh --issue -d "$full_domain" --standalone --force --server "https://acme-v02.api.letsencrypt.org/directory"
+    
+    if [ $? -eq 0 ]; then
+        echo "使用 Let's Encrypt 成功申请证书。"
+    else
+        echo "证书申请失败。请检查防火墙、DNS解析、80端口等。"
+        exit 1
+    fi
 fi
+
+# 获取证书列表
+acme.sh --list | grep "$full_domain"
+
+# 若需安装证书到系统路径，可手动执行：
+# acme.sh --install-cert -d "$full_domain" \
+#   --key-file /etc/ssl/${full_domain}.key \
+#   --fullchain-file /etc/ssl/${full_domain}.crt
+
+# 在证书申请成功后，添加以下代码将证书安装到指定目录
+INSTALL_CERT_PATH="/root/cert/${full_domain}"
+mkdir -p "$INSTALL_CERT_PATH"
+
+# 确定证书存放的目录
+CERT_DIR="/root/.acme.sh/${full_domain}_ecc"
+
+# 将证书复制到目标目录
+cp "${CERT_DIR}/fullchain.cer" "${INSTALL_CERT_PATH}/fullchain.pem"
+cp "${CERT_DIR}/${full_domain}.key" "${INSTALL_CERT_PATH}/privkey.pem"
+
+echo "证书已安装到: $INSTALL_CERT_PATH"
+echo "证书文件: ${INSTALL_CERT_PATH}/fullchain.pem"
+echo "私钥文件: ${INSTALL_CERT_PATH}/privkey.pem"
+
+# 设置证书权限
+chmod 644 "${INSTALL_CERT_PATH}/fullchain.pem"
+chmod 644 "${INSTALL_CERT_PATH}/privkey.pem"
+
+echo "证书安装完成。"
+echo "手动删除证书: rm -rf ${INSTALL_CERT_PATH}"
+echo "手动删除证书: rm -rf ${CERT_DIR}"
