@@ -16,7 +16,7 @@ DNS_API_PORT=5050
 DOMAIN_SUFFIX="ns.washvoid.com"
 
 # 检查并安装缺少的依赖
-for cmd in jq nc lsof curl wget socat; do
+for cmd in jq lsof curl wget socat; do
     if ! command -v $cmd &>/dev/null; then
         echo "缺少依赖: $cmd，正在尝试安装..."
 
@@ -24,11 +24,7 @@ for cmd in jq nc lsof curl wget socat; do
         if command -v apt-get &>/dev/null; then
             # Debian/Ubuntu 系列
             echo "检测到 apt-get，使用 apt-get 安装 $cmd"
-            if [[ "$cmd" == "nc" ]]; then
-                apt-get update && apt-get install -y netcat-openbsd
-            else
-                apt-get update && apt-get install -y "$cmd"
-            fi
+            apt-get update && apt-get install -y "$cmd"
         elif command -v yum &>/dev/null; then
             # CentOS/RHEL 系列
             echo "检测到 yum，使用 yum 安装 $cmd"
@@ -43,6 +39,19 @@ for cmd in jq nc lsof curl wget socat; do
         fi
     fi
 done
+
+# 安装 netcat-openbsd
+if ! command -v nc &>/dev/null; then
+    echo "缺少依赖: nc，正在尝试安装..."
+    if command -v apt-get &>/dev/null; then
+        echo "检测到 apt-get，使用 apt-get 安装 netcat-openbsd"
+        apt-get update && apt-get install -y netcat-openbsd
+    else
+        echo "无法自动安装 netcat-openbsd，请手动安装该依赖。"
+        exit 1
+    fi
+fi
+
 
 
 # 如果 acme.sh 未安装，自动安装（需要网络）
