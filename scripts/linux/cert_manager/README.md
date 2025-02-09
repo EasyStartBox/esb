@@ -25,3 +25,8 @@
 bash <(curl -sL https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/cert_manager/auto_cert_acme.sh)
 ```
 ***
+### 或一键脚本auto_cert_certbot.sh
+```bash
+bash <(curl -sL https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/cert_manager/auto_cert_certbot.sh)
+```
+***
