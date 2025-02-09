@@ -24,7 +24,11 @@ for cmd in jq nc lsof curl wget socat; do
         if command -v apt-get &>/dev/null; then
             # Debian/Ubuntu 系列
             echo "检测到 apt-get，使用 apt-get 安装 $cmd"
-            apt-get update && apt-get install -y "$cmd"
+            if [[ "$cmd" == "nc" ]]; then
+                apt-get update && apt-get install -y netcat-openbsd
+            else
+                apt-get update && apt-get install -y "$cmd"
+            fi
         elif command -v yum &>/dev/null; then
             # CentOS/RHEL 系列
             echo "检测到 yum，使用 yum 安装 $cmd"
@@ -39,6 +43,7 @@ for cmd in jq nc lsof curl wget socat; do
         fi
     fi
 done
+
 
 # 如果 acme.sh 未安装，自动安装（需要网络）
 if ! command -v acme.sh &>/dev/null; then
