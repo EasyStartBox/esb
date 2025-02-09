@@ -180,7 +180,7 @@ fi
 # 调用 acme.sh --standalone 申请
 # 注意要确保此时外网 dig $full_domain 能解析到 $public_ip 且80端口可访问到此机
 echo "开始申请证书..."
-acme.sh --set-default-ca --ca "https://acme-v02.api.letsencrypt.org/directory"
+# acme.sh --set-default-ca --ca "https://acme-v02.api.letsencrypt.org/directory"
 
 acme.sh --issue -d "$full_domain" --standalone --force
 if [ $? -eq 0 ]; then
