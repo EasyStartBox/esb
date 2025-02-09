@@ -19,3 +19,9 @@
 > 保存后 `systemctl daemon-reload && systemctl enable dns-api && systemctl start dns-api`。
 
 ---
+
+### 一键脚本auto_cert_acme.sh
+```bash
+bash <(curl -sL https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/cert_manager/auto_cert_acme.sh)
+```
+***
