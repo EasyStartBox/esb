@@ -181,18 +181,19 @@ fi
 # 注意要确保此时外网 dig $full_domain 能解析到 $public_ip 且80端口可访问到此机
 echo "开始申请证书..."
 
-# 尝试使用 ZeroSSL 申请证书
-acme.sh --issue -d "$full_domain" --standalone --force
+# 尝试使用 Let's Encrypt 申请证书
+acme.sh --issue -d "$full_domain" --standalone --force --server "https://acme-v02.api.letsencrypt.org/directory"
+
 
 if [ $? -eq 0 ]; then
     echo "证书申请成功。acme.sh 默认会自动续期。"
 else
-    # 如果 ZeroSSL 失败，切换到 Let's Encrypt
-    echo "ZeroSSL 证书申请失败，正在尝试使用 Let's Encrypt ..."
-    acme.sh --issue -d "$full_domain" --standalone --force --server "https://acme-v02.api.letsencrypt.org/directory"
-    
+    # 如果 Let's Encrypt 失败，切换到 默认
+    echo "Let's Encrypt 证书申请失败，正在尝试使用 ZeroSSL ..."
+    acme.sh --issue -d "$full_domain" --standalone --force --server "https://acme.zerossl.com/v2/DV90"
+
     if [ $? -eq 0 ]; then
-        echo "使用 Let's Encrypt 成功申请证书。"
+        echo "使用 ZeroSSL 成功申请证书。"
     else
         echo "证书申请失败。请检查防火墙、DNS解析、80端口等。"
         exit 1
