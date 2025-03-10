@@ -48,3 +48,30 @@ bash <(curl -sL https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/
 
 
 
+
+
+### IDM序列号
+打开 Internet Download Manager
+输入 序列号 其余 3项随便写 就可以用了
+给大家几组序列号以备不时之需！
+```bash
+OS5HG-K90NH-SXOGT-7JYEZ
+```
+```bash
+R2C1T-O0KQO-JAVU2-4MMYP
+```
+```bash
+M2A16-47AAW-6NLYP-V1E0J
+```
+```bash  
+IZO7M-360FW-QY1XP-AWLPN
+```
+```bash
+46YFS-S9G7H-QZFWI-QQBQB
+```
+```bash
+TUTR2-I2NHO-GQBC6-ZECWH
+```
+***
+
+

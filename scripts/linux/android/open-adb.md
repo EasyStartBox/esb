@@ -209,3 +209,14 @@
 - **不需要 Magisk**，因为 Android 7.1.2 已经 `root` 了，可以直接修改 `/system`。
 
 🚀 **这样，你的设备 ADB 在每次开机后都会自动启动，并支持无线连接！** 🚀
+
+
+```sh
+setprop sys.thermal.data false    # 关闭温控
+stop thermal-engine              # 停止温控服务
+```
+
+
+
+
+

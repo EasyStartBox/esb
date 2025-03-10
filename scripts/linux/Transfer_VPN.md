@@ -1,3 +1,8 @@
+
+
+# **已弃用(2025-03-10暂时保留在这)**
+# **采用frp(直接经过公网服务器或xtcp与socat配合的UoT点对点)或基于wireguard的netbird和tailscale点对点更好**
+
 # **🚀 公网服务器中转内网 VPN（WireGuard）完整教程**  
 ## **📌 目标**  
 1. **公网服务器**（Linux, Docker）仅作为 VPN **中转节点**，不影响自身网络。  
@@ -28,7 +33,7 @@ services:
   wireguard:
     image: lscr.io/linuxserver/wireguard
     container_name: wireguard-server
-    network_mode: "host"  # ✅ 直接使用宿主机网络
+    network_mode: "host"
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
@@ -36,14 +41,18 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Asia/Shanghai
-      - SERVERPORT=51820
-      - PEERS=2  # 1个内网服务器（Windows）+ 1个外部客户端
-      - ALLOWEDIPS=0.0.0.0/0
+      - SERVERURL=auto                # 自动检测服务器公网IP或指定具体IP
+      - SERVERPORT=51820              # WireGuard监听端口
+      - INTERNAL_SUBNET=10.0.0.0/24   # 设置内部子网
+      - PEERS=2                       # 配置2个客户端
+      - PEERDNS=auto                  # 可以指定为10.0.0.1或其他DNS服务器
+      - ALLOWEDIPS=0.0.0.0/0          # 允许客户端访问的IP范围
     volumes:
       - ./config:/config
       - /lib/modules:/lib/modules
     sysctls:
-      - net.ipv4.ip_forward=1
+      - net.ipv4.ip_forward=1         # 开启IP转发
+      - net.ipv4.conf.all.src_valid_mark=1
     restart: unless-stopped
 ```
 
@@ -107,7 +116,32 @@ PersistentKeepalive = 25
 ```
 💾 **将 `peer1.conf` 复制到内网 Windows，`peer2.conf` 复制到外部客户端**。
 
+
+
+### **🚀 1.7 重新部署 WireGuard**
+1. **删除旧容器**
+   ```bash
+   docker-compose down
+   ```
+
+2. **重新启动 WireGuard**
+   ```bash
+   docker-compose up -d
+   ```
+
+3. **检查服务器 IP 是否更新**
+   ```bash
+   cat /opt/wireguard/config/wg_confs/wg0.conf
+   ```
+   应该看到：
+   ```ini
+   [Interface]
+   Address = 10.0.0.1
+   ```
+
 ---
+
+
 
 ## **🖥️ 2. 内网 Windows 服务器（连接 VPN）**
 ### **✅ 2.1 下载并安装 WireGuard**
@@ -182,3 +216,153 @@ wg show
 | **外部客户端** | 连接 WireGuard VPN，访问 `10.0.0.2`（内网服务器） |
 
 💡 **这样，你的公网服务器不会暴露内网，外部客户端可以通过 VPN 访问内网服务器！** 🚀🚀🚀
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+是的，在 **Docker** 里运行 WireGuard **可以减少防火墙配置**，因为 Docker 会自动管理 **iptables 规则**，但仍需正确配置 **端口转发** 和 **网络模式**。
+
+---
+
+## **Docker 部署 WireGuard 作为中转服务器**
+### **1. 安装 Docker 和 WireGuard**
+在 **服务器 S** 上：
+```sh
+apt update && apt install docker.io -y
+```
+
+安装 `wireguard-tools`：
+```sh
+apt install wireguard-tools -y
+```
+
+---
+
+### **2. 运行 WireGuard 容器**
+推荐使用 [`linuxserver/wireguard`](https://hub.docker.com/r/linuxserver/wireguard) 镜像：
+```sh
+docker run -d \
+  --name=wireguard \
+  --cap-add=NET_ADMIN \
+  --cap-add=SYS_MODULE \
+  -e PUID=1000 -e PGID=1000 \
+  -e TZ=Asia/Shanghai \
+  -e SERVERPORT=51820 \
+  -p 51820:51820/udp \
+  -v /path/to/config:/config \
+  --sysctl="net.ipv4.conf.all.src_valid_mark=1" \
+  --restart unless-stopped \
+  lscr.io/linuxserver/wireguard:latest
+```
+
+**说明**
+- `-p 51820:51820/udp`：**无需额外防火墙规则**，Docker 自动处理端口映射。
+- `--cap-add=NET_ADMIN`：允许容器管理网络。
+- `--sysctl="net.ipv4.conf.all.src_valid_mark=1"`：支持 NAT 转发。
+
+---
+
+### **3. 配置 WireGuard**
+#### **生成密钥**
+```sh
+docker exec -it wireguard bash
+wg genkey | tee /config/privatekey | wg pubkey > /config/publickey
+```
+- `cat /config/privatekey` → **服务器私钥**
+- `cat /config/publickey` → **服务器公钥**
+
+#### **编辑 `/etc/wireguard/wg0.conf`**
+```ini
+[Interface]
+PrivateKey = 服务器私钥
+Address = 10.100.100.1/24
+ListenPort = 51820
+
+[Peer]
+PublicKey = A 的公钥
+AllowedIPs = 10.100.100.2/32
+
+[Peer]
+PublicKey = B 的公钥
+AllowedIPs = 10.100.100.3/32
+```
+**重启容器**
+```sh
+docker restart wireguard
+```
+
+---
+
+### **4. 客户端 A、B 配置**
+#### **`wg0.conf` 示例**
+```ini
+[Interface]
+PrivateKey = 客户端私钥
+Address = 10.100.100.2/24
+
+[Peer]
+PublicKey = 服务器公钥
+Endpoint = x.x.x.x:51820
+AllowedIPs = 10.100.100.0/24
+PersistentKeepalive = 25
+```
+然后启动：
+```sh
+systemctl enable wg-quick@wg0
+systemctl start wg-quick@wg0
+```
+
+---
+
+## **5. Docker 方式下防火墙的优化**
+**优势**
+- **无需手动配置 `iptables` 规则**，Docker **自动管理端口映射**。
+- **简化 `sysctl` 配置**，Docker 处理 `net.ipv4.ip_forward`。
+
+**可能的调整**
+如果 **宿主机防火墙开启了 UFW**，执行：
+```sh
+ufw allow 51820/udp
+```
+如果仍然无法通信，可尝试：
+```sh
+ufw disable
+systemctl restart docker
+```
+
+---
+
+## **6. 测试连通性**
+在 **客户端 A** 运行：
+```sh
+ping 10.100.100.3
+```
+在 **客户端 B** 运行：
+```sh
+ping 10.100.100.2
+```
+如果通了，就表示 Docker 方式的 WireGuard 中转成功！🚀
