@@ -50,7 +50,7 @@ bash <(curl -sL https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/
 
 
 
-### IDM序列号
+### `IDM`序列号(仅临时去除弹窗有效,建议使用IDM的重置使用时间脚本)
 打开 Internet Download Manager
 输入 序列号 其余 3项随便写 就可以用了
 给大家几组序列号以备不时之需！
