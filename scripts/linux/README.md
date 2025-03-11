@@ -20,6 +20,13 @@ bash <(curl -sL https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/
 ```
 ***
 
+### 证书ssh登录脚本个人专用ssh_login_with_cert.sh
+```bash
+bash <(curl -sL https://raw.githubusercontent.com/EasyStartBox/esb/main/scripts/linux/ssh_login_with_cert.sh)
+```
+***
+
+
 ### 使用 `curl` 或 `wget` 下载并执行例子
 
 1. **使用 `curl`**：
