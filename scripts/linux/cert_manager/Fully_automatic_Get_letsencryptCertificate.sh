@@ -279,10 +279,12 @@ fi
 echo "开始申请证书..."
 
 # 尝试使用 Let's Encrypt 申请证书
-certbot certonly --standalone -d "$full_domain" --agree-tos --no-eff-email --force-renewal --email "your-email@example.com"
+# certbot certonly --standalone -d "$full_domain" --agree-tos --no-eff-email --force-renewal --email "your-email@example.com"
+certbot certonly --standalone -d "$full_domain" --agree-tos --register-unsafely-without-email --no-eff-email --force-renewal
 
 if [ $? -eq 0 ]; then
     echo "证书申请成功。certbot 默认会自动续期。"
+    echo "提示: certbot renew --dry-run 测试自动续期"
 else
     echo "证书申请失败。请检查防火墙、DNS解析、80端口等。"
     exit 1
