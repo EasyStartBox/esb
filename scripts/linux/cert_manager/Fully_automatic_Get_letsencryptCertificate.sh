@@ -13,7 +13,7 @@ DNS_API_SERVER="178.157.56.29"
 DNS_API_PORT=5050
 
 # 你在 Bind 配置中管理的子域后缀
-DOMAIN_SUFFIX="ab0.top"
+DOMAIN_SUFFIX="ns.washvoid.com"
 
 # 检查并安装缺少的依赖
 for cmd in jq lsof curl wget socat certbot; do
@@ -40,66 +40,121 @@ for cmd in jq lsof curl wget socat certbot; do
     fi
 done
 
-# === 准备列出本机可用IP ===
-public_ips=()
-private_ips=()
 
-# 获取公网IP
-echo "正在检测公网IP..."
+
+######################################################## 获取所有公网IP
+
+
+# 准备记录IP的关联数组（去重用）
+declare -A seen_public_ipv4 seen_public_ipv6
+
+# 用数组分别保存不同类型的IP
+public_ipv4=()
+public_ipv6=()
+private_ipv4=()
+private_ipv6=()
+
+# 获取公网IPv4，使用curl超时参数避免卡住
+echo "正在检测公网IPv4..."
 for service in "ifconfig.me" "ip.sb" "ipinfo.io/ip" "api.ipify.org"; do
-    ip=$(curl -s $service 2>/dev/null || echo "")
-    if [[ -n "$ip" && ! " ${public_ips[@]} " =~ " $ip " ]]; then
-        public_ips+=("$ip")
+    ip=$(curl -s -m 5 "$service" 2>/dev/null || echo "")
+    if [[ -n "$ip" && -z "${seen_public_ipv4[$ip]}" ]]; then
+        public_ipv4+=("$ip")
+        seen_public_ipv4["$ip"]=1
     fi
 done
 
-# 获取本地IP
-echo "正在检测本地IP..."
-while IFS= read -r line; do
-    if [[ ! " ${private_ips[@]} " =~ " $line " ]]; then
-        private_ips+=("$line")
+# 获取公网IPv6（需服务支持IPv6）
+echo "正在检测公网IPv6..."
+for service in "ifconfig.co" "ipv6.icanhazip.com"; do
+    ip=$(curl -6 -s -m 5 "$service" 2>/dev/null || echo "")
+    if [[ -n "$ip" && -z "${seen_public_ipv6[$ip]}" ]]; then
+        public_ipv6+=("$ip")
+        seen_public_ipv6["$ip"]=1
     fi
-done < <(ip -o addr show | grep -v "127.0.0.1" | grep -v "::1" | awk '{print $4}' | cut -d/ -f1)
+done
+
+# 获取内网IPv4地址
+echo "正在检测内网IPv4..."
+while IFS= read -r line; do
+    if [[ "$line" != "127.0.0.1" ]]; then
+        private_ipv4+=("$line")
+    fi
+done < <(ip -o -4 addr show | awk '{print $4}' | cut -d/ -f1)
+
+# 获取内网IPv6地址
+echo "正在检测内网IPv6..."
+while IFS= read -r line; do
+    # 排除回环地址（例如::1）
+    if [[ "$line" != "::1" ]]; then
+        private_ipv6+=("$line")
+    fi
+done < <(ip -o -6 addr show | awk '{print $4}' | cut -d/ -f1)
 
 # 显示IP列表
 echo "检测到的IP列表："
 idx=1
+ip_list=()
 
-if [ ${#public_ips[@]} -gt 0 ]; then
-    echo "公网IP:"
-    for ip in "${public_ips[@]}"; do
+if [ ${#public_ipv4[@]} -gt 0 ]; then
+    echo "公网IPv4:"
+    for ip in "${public_ipv4[@]}"; do
         echo "  $idx) $ip"
+        ip_list+=("$ip")
         ((idx++))
     done
 fi
 
-if [ ${#private_ips[@]} -gt 0 ]; then
-    echo "内网IP:"
-    for ip in "${private_ips[@]}"; do
+if [ ${#public_ipv6[@]} -gt 0 ]; then
+    echo "公网IPv6:"
+    for ip in "${public_ipv6[@]}"; do
         echo "  $idx) $ip"
+        ip_list+=("$ip")
+        ((idx++))
+    done
+fi
+
+if [ ${#private_ipv4[@]} -gt 0 ]; then
+    echo "内网IPv4:"
+    for ip in "${private_ipv4[@]}"; do
+        echo "  $idx) $ip"
+        ip_list+=("$ip")
+        ((idx++))
+    done
+fi
+
+if [ ${#private_ipv6[@]} -gt 0 ]; then
+    echo "内网IPv6:"
+    for ip in "${private_ipv6[@]}"; do
+        echo "  $idx) $ip"
+        ip_list+=("$ip")
         ((idx++))
     done
 fi
 
 echo "  0)  使用以上列表外的自定义IP"
-read -p "请选择IP序号（默认选择第一个公网IP）:" choice
+read -p "请选择IP序号（默认选择第一个公网IPv4）: " choice
 choice="${choice:-1}"
 
-
-
-# 如果用户选择自定义IP
-if [ "$choice" == "0" ]; then
+# 处理用户选择
+if [[ "$choice" == "0" ]]; then
     read -p "请输入自定义IP: " custom_ip
     public_ip="$custom_ip"
 else
-    # 如果用户输入超范围，则用默认1
-    if [ "$choice" -lt 1 ] || [ "$choice" -gt "${#ip_list[@]}" ] 2>/dev/null; then
+    # 如果用户输入超范围或者不是数字，则使用默认值 1
+    if ! [[ "$choice" =~ ^[0-9]+$ ]] || [ "$choice" -lt 1 ] || [ "$choice" -gt "${#ip_list[@]}" ]; then
         choice=1
     fi
     public_ip="${ip_list[$((choice-1))]}"
 fi
 
 echo "使用 IP: $public_ip"
+
+
+
+
+######################################################## 获取所有公网IP
+
 
 # 生成随机前缀函数
 generate_prefix() {
@@ -115,33 +170,33 @@ fi
 full_domain="${prefix}.${DOMAIN_SUFFIX}"
 echo "完整域名: $full_domain"
 
-# 发送 JSON 请求到 DNS API
-# add_domain() {
-#     local domain=$1
-#     local ip=$2
-#     local json
-#     json=$(jq -n --arg action "add_domain" --arg d "$domain" --arg i "$ip" \
-#          '{action:$action, domain:$d, ip:$i}')
-#     echo "向DNS服务器($DNS_API_SERVER:$DNS_API_PORT)发送添加请求: $json"
-#     resp=$(echo "$json" | nc "$DNS_API_SERVER" "$DNS_API_PORT")
-#     echo "服务器响应: $resp"
-#     # 检查 status
-#     local st msg
-#     st=$(echo "$resp" | jq -r '.status' 2>/dev/null || true)
-#     msg=$(echo "$resp" | jq -r '.message' 2>/dev/null || true)
-#     if [ "$st" != "success" ]; then
-#         echo "添加失败: $msg"
-#         return 1
-#     fi
-#     echo "添加成功: $msg"
-#     return 0
-# }
+发送 JSON 请求到 DNS API
+add_domain() {
+    local domain=$1
+    local ip=$2
+    local json
+    json=$(jq -n --arg action "add_domain" --arg d "$domain" --arg i "$ip" \
+         '{action:$action, domain:$d, ip:$i}')
+    echo "向DNS服务器($DNS_API_SERVER:$DNS_API_PORT)发送添加请求: $json"
+    resp=$(echo "$json" | nc "$DNS_API_SERVER" "$DNS_API_PORT")
+    echo "服务器响应: $resp"
+    # 检查 status
+    local st msg
+    st=$(echo "$resp" | jq -r '.status' 2>/dev/null || true)
+    msg=$(echo "$resp" | jq -r '.message' 2>/dev/null || true)
+    if [ "$st" != "success" ]; then
+        echo "添加失败: $msg"
+        return 1
+    fi
+    echo "添加成功: $msg"
+    return 0
+}
 
-# # 尝试添加域名记录
-# if ! add_domain "$full_domain" "$public_ip"; then
-#     echo "请更换前缀或修改IP后再试。"
-#     exit 1
-# fi
+# 尝试添加域名记录
+if ! add_domain "$full_domain" "$public_ip"; then
+    echo "请更换前缀或修改IP后再试。"
+    exit 1
+fi
 
 # 检查 80 端口占用
 port_in_use=$(lsof -i:80 -t || true)
@@ -226,22 +281,22 @@ chmod 644 "${cert_path}/privkey.pem"
 
 
 # 在证书申请成功后，添加以下代码将证书安装到指定目录
-INSTALL_CERT_PATH="/root/cert/${full_domain}"
-mkdir -p "$INSTALL_CERT_PATH"
+TMP_INSTALL_CERT_PATH="/root/cert/${full_domain}"
+mkdir -p "$TMP_INSTALL_CERT_PATH"
 
 # 将证书复制到目标目录
-cp "${cert_path}/fullchain.pem" "${INSTALL_CERT_PATH}/fullchain.pem"
-cp "${cert_path}/privkey.pem" "${INSTALL_CERT_PATH}/privkey.pem"
+cp "${cert_path}/fullchain.pem" "${TMP_INSTALL_CERT_PATH}/fullchain.pem"
+cp "${cert_path}/privkey.pem" "${TMP_INSTALL_CERT_PATH}/privkey.pem"
 
-echo "证书已安装到: $INSTALL_CERT_PATH"
+echo "证书已安装到: $TMP_INSTALL_CERT_PATH"
 
 # 设置证书权限
-chmod 644 "${INSTALL_CERT_PATH}/fullchain.pem"
-chmod 644 "${INSTALL_CERT_PATH}/privkey.pem"
+chmod 644 "${TMP_INSTALL_CERT_PATH}/fullchain.pem"
+chmod 644 "${TMP_INSTALL_CERT_PATH}/privkey.pem"
 
 echo "证书安装完成。"
-echo "提示手动删除证书命令1(推荐): certbot delete --cert-name $full_domain && rm -rf ${INSTALL_CERT_PATH}"
-echo "提示手动删除证书命令2(不推荐): rm -rf /etc/letsencrypt/live/$full_domain && rm -rf /etc/letsencrypt/archive/$full_domain && rm -rf /etc/letsencrypt/renewal/$full_domain.conf && rm -rf ${INSTALL_CERT_PATH}"
+echo "提示手动删除证书命令1(推荐): certbot delete --cert-name $full_domain && rm -rf ${TMP_INSTALL_CERT_PATH}"
+echo "提示手动删除证书命令2(不推荐): rm -rf /etc/letsencrypt/live/$full_domain && rm -rf /etc/letsencrypt/archive/$full_domain && rm -rf /etc/letsencrypt/renewal/$full_domain.conf && rm -rf ${TMP_INSTALL_CERT_PATH}"
 
 
 

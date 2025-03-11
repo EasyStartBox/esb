@@ -40,32 +40,6 @@ for cmd in jq lsof curl wget socat certbot; do
     fi
 done
 
-# # === 准备列出本机可用公网IP ===
-# # 方法1: 用 ip 命令列举全局地址，然后过滤掉本地/链路地址
-# #        只做一个简单的 grep "global" 示例，如果想更准确，可做更多正则判断
-# ip_list=()
-# while IFS= read -r line; do
-#     ip_list+=("$line")
-# done < <(ip -o addr show scope global | awk '{print $4}' | cut -d/ -f1)
-
-# # 如果没检测到，就尝试 curl ifconfig.me 作为默认
-# if [ ${#ip_list[@]} -eq 0 ]; then
-#     fallback_ip=$(curl -s ifconfig.me || true)
-#     if [ -n "$fallback_ip" ]; then
-#         ip_list+=("$fallback_ip")
-#     fi
-# fi
-
-# echo "检测到的公网IP列表："
-# idx=1
-# for ip in "${ip_list[@]}"; do
-#     echo "  $idx) $ip"
-#     ((idx++))
-# done
-# echo "  0)  使用以上列表外的自定义IP"
-
-# read -p "请选择IP序号（默认1）:" choice
-# choice="${choice:-1}"
 
 
 
@@ -73,7 +47,6 @@ done
 
 
 
-#!/bin/bash
 # 准备记录IP的关联数组（去重用）
 declare -A seen_public_ipv4 seen_public_ipv6
 

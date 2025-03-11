@@ -78,45 +78,118 @@ if ! command -v socat &>/dev/null; then
 fi
 
 
-# === 准备列出本机可用公网IP ===
-# 方法1: 用 ip 命令列举全局地址，然后过滤掉本地/链路地址
-#        只做一个简单的 grep "global" 示例，如果想更准确，可做更多正则判断
-ip_list=()
-while IFS= read -r line; do
-    ip_list+=("$line")
-done < <(ip -o addr show scope global | awk '{print $4}' | cut -d/ -f1)
+######################################################## 获取所有公网IP
 
-# 如果没检测到，就尝试 curl ifconfig.me 作为默认
-if [ ${#ip_list[@]} -eq 0 ]; then
-    fallback_ip=$(curl -s ifconfig.me || true)
-    if [ -n "$fallback_ip" ]; then
-        ip_list+=("$fallback_ip")
+
+# 准备记录IP的关联数组（去重用）
+declare -A seen_public_ipv4 seen_public_ipv6
+
+# 用数组分别保存不同类型的IP
+public_ipv4=()
+public_ipv6=()
+private_ipv4=()
+private_ipv6=()
+
+# 获取公网IPv4，使用curl超时参数避免卡住
+echo "正在检测公网IPv4..."
+for service in "ifconfig.me" "ip.sb" "ipinfo.io/ip" "api.ipify.org"; do
+    ip=$(curl -s -m 5 "$service" 2>/dev/null || echo "")
+    if [[ -n "$ip" && -z "${seen_public_ipv4[$ip]}" ]]; then
+        public_ipv4+=("$ip")
+        seen_public_ipv4["$ip"]=1
     fi
+done
+
+# 获取公网IPv6（需服务支持IPv6）
+echo "正在检测公网IPv6..."
+for service in "ifconfig.co" "ipv6.icanhazip.com"; do
+    ip=$(curl -6 -s -m 5 "$service" 2>/dev/null || echo "")
+    if [[ -n "$ip" && -z "${seen_public_ipv6[$ip]}" ]]; then
+        public_ipv6+=("$ip")
+        seen_public_ipv6["$ip"]=1
+    fi
+done
+
+# 获取内网IPv4地址
+echo "正在检测内网IPv4..."
+while IFS= read -r line; do
+    if [[ "$line" != "127.0.0.1" ]]; then
+        private_ipv4+=("$line")
+    fi
+done < <(ip -o -4 addr show | awk '{print $4}' | cut -d/ -f1)
+
+# 获取内网IPv6地址
+echo "正在检测内网IPv6..."
+while IFS= read -r line; do
+    # 排除回环地址（例如::1）
+    if [[ "$line" != "::1" ]]; then
+        private_ipv6+=("$line")
+    fi
+done < <(ip -o -6 addr show | awk '{print $4}' | cut -d/ -f1)
+
+# 显示IP列表
+echo "检测到的IP列表："
+idx=1
+ip_list=()
+
+if [ ${#public_ipv4[@]} -gt 0 ]; then
+    echo "公网IPv4:"
+    for ip in "${public_ipv4[@]}"; do
+        echo "  $idx) $ip"
+        ip_list+=("$ip")
+        ((idx++))
+    done
 fi
 
-echo "检测到的公网IP列表："
-idx=1
-for ip in "${ip_list[@]}"; do
-    echo "  $idx) $ip"
-    ((idx++))
-done
-echo "  0)  使用以上列表外的自定义IP"
+if [ ${#public_ipv6[@]} -gt 0 ]; then
+    echo "公网IPv6:"
+    for ip in "${public_ipv6[@]}"; do
+        echo "  $idx) $ip"
+        ip_list+=("$ip")
+        ((idx++))
+    done
+fi
 
-read -p "请选择IP序号（默认1）:" choice
+if [ ${#private_ipv4[@]} -gt 0 ]; then
+    echo "内网IPv4:"
+    for ip in "${private_ipv4[@]}"; do
+        echo "  $idx) $ip"
+        ip_list+=("$ip")
+        ((idx++))
+    done
+fi
+
+if [ ${#private_ipv6[@]} -gt 0 ]; then
+    echo "内网IPv6:"
+    for ip in "${private_ipv6[@]}"; do
+        echo "  $idx) $ip"
+        ip_list+=("$ip")
+        ((idx++))
+    done
+fi
+
+echo "  0)  使用以上列表外的自定义IP"
+read -p "请选择IP序号（默认选择第一个公网IPv4）: " choice
 choice="${choice:-1}"
 
-if [ "$choice" == "0" ]; then
+# 处理用户选择
+if [[ "$choice" == "0" ]]; then
     read -p "请输入自定义IP: " custom_ip
     public_ip="$custom_ip"
 else
-    # 如果用户输入超范围，则用默认1
-    if [ "$choice" -lt 1 ] || [ "$choice" -gt "${#ip_list[@]}" ] 2>/dev/null; then
+    # 如果用户输入超范围或者不是数字，则使用默认值 1
+    if ! [[ "$choice" =~ ^[0-9]+$ ]] || [ "$choice" -lt 1 ] || [ "$choice" -gt "${#ip_list[@]}" ]; then
         choice=1
     fi
     public_ip="${ip_list[$((choice-1))]}"
 fi
 
 echo "使用 IP: $public_ip"
+
+
+
+
+######################################################## 获取所有公网IP
 
 # 生成随机前缀函数
 generate_prefix() {
