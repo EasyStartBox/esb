@@ -73,7 +73,7 @@ done
 
 
 
-
+#!/bin/bash
 # 准备记录IP的关联数组（去重用）
 declare -A seen_public_ipv4 seen_public_ipv6
 
@@ -123,11 +123,13 @@ done < <(ip -o -6 addr show | awk '{print $4}' | cut -d/ -f1)
 # 显示IP列表
 echo "检测到的IP列表："
 idx=1
+ip_list=()
 
 if [ ${#public_ipv4[@]} -gt 0 ]; then
     echo "公网IPv4:"
     for ip in "${public_ipv4[@]}"; do
         echo "  $idx) $ip"
+        ip_list+=("$ip")
         ((idx++))
     done
 fi
@@ -136,6 +138,7 @@ if [ ${#public_ipv6[@]} -gt 0 ]; then
     echo "公网IPv6:"
     for ip in "${public_ipv6[@]}"; do
         echo "  $idx) $ip"
+        ip_list+=("$ip")
         ((idx++))
     done
 fi
@@ -144,6 +147,7 @@ if [ ${#private_ipv4[@]} -gt 0 ]; then
     echo "内网IPv4:"
     for ip in "${private_ipv4[@]}"; do
         echo "  $idx) $ip"
+        ip_list+=("$ip")
         ((idx++))
     done
 fi
@@ -152,31 +156,31 @@ if [ ${#private_ipv6[@]} -gt 0 ]; then
     echo "内网IPv6:"
     for ip in "${private_ipv6[@]}"; do
         echo "  $idx) $ip"
+        ip_list+=("$ip")
         ((idx++))
     done
 fi
 
 echo "  0)  使用以上列表外的自定义IP"
-read -p "请选择IP序号（默认选择第一个公网IPv4）:" choice
+read -p "请选择IP序号（默认选择第一个公网IPv4）: " choice
 choice="${choice:-1}"
 
-
-
-
-
-
-if [ "$choice" == "0" ]; then
+# 处理用户选择
+if [[ "$choice" == "0" ]]; then
     read -p "请输入自定义IP: " custom_ip
     public_ip="$custom_ip"
 else
-    # 如果用户输入超范围，则用默认1
-    if [ "$choice" -lt 1 ] || [ "$choice" -gt "${#ip_list[@]}" ] 2>/dev/null; then
+    # 如果用户输入超范围或者不是数字，则使用默认值 1
+    if ! [[ "$choice" =~ ^[0-9]+$ ]] || [ "$choice" -lt 1 ] || [ "$choice" -gt "${#ip_list[@]}" ]; then
         choice=1
     fi
     public_ip="${ip_list[$((choice-1))]}"
 fi
 
 echo "使用 IP: $public_ip"
+
+
+
 
 # 生成随机前缀函数
 generate_prefix() {
