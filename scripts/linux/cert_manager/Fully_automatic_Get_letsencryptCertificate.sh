@@ -63,7 +63,7 @@ for service in "ifconfig.me" "ip.sb" "ipinfo.io/ip" "api.ipify.org"; do
         seen_public_ipv4["$ip"]=1
     fi
 done
-
+sleep 1
 # 获取公网IPv6（需服务支持IPv6）
 echo "正在检测公网IPv6..."
 for service in "ifconfig.co" "ipv6.icanhazip.com"; do
