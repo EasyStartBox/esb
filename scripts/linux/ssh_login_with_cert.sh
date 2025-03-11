@@ -11,11 +11,117 @@ NC='\033[0m' # 无颜色
 # 获取当前用户名
 DEFAULT_USER=$(whoami)
 
-# 获取当前服务器的 IP（优先使用 hostname -I，如果失败则尝试 ip route）
-DEFAULT_HOST=$(hostname -I | awk '{print $1}')
-if [ -z "$DEFAULT_HOST" ]; then
-  DEFAULT_HOST=$(ip route get 1 | awk '{print $7}')
+# # 获取当前服务器的 IP（优先使用 hostname -I，如果失败则尝试 ip route）
+# DEFAULT_HOST=$(hostname -I | awk '{print $1}')
+# if [ -z "$DEFAULT_HOST" ]; then
+#   DEFAULT_HOST=$(ip route get 1 | awk '{print $7}')
+# fi
+
+
+
+# 准备记录IP的关联数组（去重用）
+declare -A seen_public_ipv4 seen_public_ipv6
+
+# 用数组分别保存不同类型的IP
+public_ipv4=()
+public_ipv6=()
+private_ipv4=()
+private_ipv6=()
+
+# 获取公网IPv4，使用curl超时参数避免卡住
+echo "正在检测公网IPv4..."
+for service in "ifconfig.me" "ip.sb" "ipinfo.io/ip" "api.ipify.org"; do
+    ip=$(curl -s -m 5 "$service" 2>/dev/null || echo "")
+    if [[ -n "$ip" && -z "${seen_public_ipv4[$ip]}" ]]; then
+        public_ipv4+=("$ip")
+        seen_public_ipv4["$ip"]=1
+    fi
+done
+
+# 获取公网IPv6（需服务支持IPv6）
+echo "正在检测公网IPv6..."
+for service in "ifconfig.co" "ipv6.icanhazip.com"; do
+    ip=$(curl -6 -s -m 5 "$service" 2>/dev/null || echo "")
+    if [[ -n "$ip" && -z "${seen_public_ipv6[$ip]}" ]]; then
+        public_ipv6+=("$ip")
+        seen_public_ipv6["$ip"]=1
+    fi
+done
+
+# 获取内网IPv4地址
+echo "正在检测内网IPv4..."
+while IFS= read -r line; do
+    if [[ "$line" != "127.0.0.1" ]]; then
+        private_ipv4+=("$line")
+    fi
+done < <(ip -o -4 addr show | awk '{print $4}' | cut -d/ -f1)
+
+# 获取内网IPv6地址
+echo "正在检测内网IPv6..."
+while IFS= read -r line; do
+    # 排除回环地址（例如::1）
+    if [[ "$line" != "::1" ]]; then
+        private_ipv6+=("$line")
+    fi
+done < <(ip -o -6 addr show | awk '{print $4}' | cut -d/ -f1)
+
+# 显示IP列表
+echo "检测到的IP列表："
+idx=1
+ip_list=()
+
+if [ ${#public_ipv4[@]} -gt 0 ]; then
+    echo "公网IPv4:"
+    for ip in "${public_ipv4[@]}"; do
+        echo "  $idx) $ip"
+        ip_list+=("$ip")
+        ((idx++))
+    done
 fi
+
+if [ ${#public_ipv6[@]} -gt 0 ]; then
+    echo "公网IPv6:"
+    for ip in "${public_ipv6[@]}"; do
+        echo "  $idx) $ip"
+        ip_list+=("$ip")
+        ((idx++))
+    done
+fi
+
+if [ ${#private_ipv4[@]} -gt 0 ]; then
+    echo "内网IPv4:"
+    for ip in "${private_ipv4[@]}"; do
+        echo "  $idx) $ip"
+        ip_list+=("$ip")
+        ((idx++))
+    done
+fi
+
+if [ ${#private_ipv6[@]} -gt 0 ]; then
+    echo "内网IPv6:"
+    for ip in "${private_ipv6[@]}"; do
+        echo "  $idx) $ip"
+        ip_list+=("$ip")
+        ((idx++))
+    done
+fi
+
+
+
+
+
+
+
+
+
+
+# 设置默认IP为第一个公网IPv4
+if [ ${#public_ipv4[@]} -gt 0 ]; then
+    DEFAULT_HOST="${public_ipv4[0]}"
+else
+    DEFAULT_HOST=""
+fi
+
 
 # 定义 SSH 相关变量（允许用户覆盖默认值）
 SSH_USER="${SSH_USER:-$DEFAULT_USER}"
