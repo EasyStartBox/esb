@@ -73,7 +73,6 @@ done
 
 
 
-get_all_ip(){
 
 # 准备记录IP的关联数组（去重用）
 declare -A seen_public_ipv4 seen_public_ipv6
@@ -161,9 +160,8 @@ echo "  0)  使用以上列表外的自定义IP"
 read -p "请选择IP序号（默认选择第一个公网IPv4）:" choice
 choice="${choice:-1}"
 
-}
 
-get_all_ip()
+
 
 
 
