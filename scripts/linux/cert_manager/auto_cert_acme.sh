@@ -294,6 +294,8 @@ echo "开始申请证书..."
 
 # 尝试使用 Let's Encrypt 申请证书
 acme.sh --issue -d "$full_domain" --standalone --force --server "https://acme-v02.api.letsencrypt.org/directory"
+# acme.sh --issue -d "$full_domain" --standalone --force --server "https://acme-v02.api.letsencrypt.org/directory" --accountemail "your-email@example.com"
+# acme.sh --issue -d "$full_domain" --register-account --server "https://acme-v02.api.letsencrypt.org/directory" --accountemail "no"
 
 
 if [ $? -eq 0 ]; then
