@@ -54,16 +54,37 @@ public_ipv6=()
 private_ipv4=()
 private_ipv6=()
 
-# 获取公网IPv4，使用curl超时参数避免卡住
+# 添加一个IPv4格式验证函数
+is_ipv4() {
+    local ip=$1
+    if [[ $ip =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# 修改获取公网IPv4的代码
 echo "正在检测公网IPv4..."
 for service in "ifconfig.me" "ip.sb" "ipinfo.io/ip" "api.ipify.org"; do
-    ip=$(curl -s -m 5 "$service" 2>/dev/null || echo "")
-    if [[ -n "$ip" && -z "${seen_public_ipv4[$ip]}" ]]; then
+    ip=$(curl -4 -s -m 5 "$service" 2>/dev/null || echo "")
+    if [[ -n "$ip" && -z "${seen_public_ipv4[$ip]}" ]] && is_ipv4 "$ip"; then
         public_ipv4+=("$ip")
         seen_public_ipv4["$ip"]=1
     fi
 done
-sleep 1
+
+
+# # 获取公网IPv4，使用curl超时参数避免卡住
+# echo "正在检测公网IPv4..."
+# for service in "ifconfig.me" "ip.sb" "ipinfo.io/ip" "api.ipify.org"; do
+#     ip=$(curl -s -m 5 "$service" 2>/dev/null || echo "")
+#     if [[ -n "$ip" && -z "${seen_public_ipv4[$ip]}" ]]; then
+#         public_ipv4+=("$ip")
+#         seen_public_ipv4["$ip"]=1
+#     fi
+# done
+
 # 获取公网IPv6（需服务支持IPv6）
 echo "正在检测公网IPv6..."
 for service in "ifconfig.co" "ipv6.icanhazip.com"; do
