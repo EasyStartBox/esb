@@ -191,7 +191,7 @@ fi
 full_domain="${prefix}.${DOMAIN_SUFFIX}"
 echo "完整域名: $full_domain"
 
-发送 JSON 请求到 DNS API
+# 发送 JSON 请求到 DNS API
 add_domain() {
     local domain=$1
     local ip=$2
