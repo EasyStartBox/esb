@@ -211,14 +211,16 @@ add_domain() {
 # 申请测试证书 (Let's Encrypt 测试服务器)
 issue_test_cert() {
     local domain=$1
-    local is_test=$2
+    local is_test=$2 # 是否为测试证书 通过true或false来判断
     local target_path="/root/cert/${domain}"
     
     echo "申请测试证书中..."
     
-        # 首先添加域名记录(如果使用命令行参数)
+        # 首先添加域名记录(如果使用命令行参数) "$USING_CLI_PARAMS" = true是使用命令行参数然后自动解析ip
     if [ "$USING_CLI_PARAMS" = true ]; then
         # 检测公网IP
+        get_ips
+
 
         
         echo "检测到公网IP: $public_ip"
@@ -725,7 +727,7 @@ select_client() {
 # 交互式向导
 interactive_wizard() {
     # 选择证书客户端
-    select_client
+    #select_client
 
     ######################################################## 获取所有公网IP
     get_ips
