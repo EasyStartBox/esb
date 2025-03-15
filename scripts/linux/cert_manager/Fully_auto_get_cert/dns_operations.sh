@@ -56,6 +56,170 @@ send_request() {
 }
 
 # Add domain function (original)
+# add_domain() {
+#     local domain="$1"
+#     local ip="$2"
+    
+#     # Validate inputs
+#     if [[ -z "$domain" || -z "$ip" ]]; then
+#         log "错误: 域名和IP都必须提供"
+#         return 1
+#     fi
+    
+#     # Validate domain format
+#     if ! echo "$domain" | grep -qE '^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$'; then
+#         log "错误: 无效的域名格式"
+#         return 1
+#     fi
+    
+#     # Validate IP format
+#     if [[ "$ip" == *":"* ]]; then
+#         # IPv6 validation (basic)
+#         if ! echo "$ip" | grep -qE '^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::$|^::1$|^::ffff:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$'; then
+#             log "错误: 无效的IPv6格式"
+#             return 1
+#         fi
+#     else
+#         # IPv4 validation
+#         if ! echo "$ip" | grep -qE '^([0-9]{1,3}\.){3}[0-9]{1,3}$'; then
+#             log "错误: 无效的IPv4格式"
+#             return 1
+#         fi
+#     fi
+    
+#     local json
+#     json=$(jq -n --arg action "add_domain" --arg d "$domain" --arg i "$ip" \
+#         '{action:$action, domain:$d, ip:$i}')
+    
+#     resp=$(send_request "$json")
+#     if [[ $? -ne 0 ]]; then
+#         return 1
+#     fi
+    
+#     log "服务器响应: $resp"
+    
+#     # 检查 status
+#     local st msg
+#     st=$(echo "$resp" | jq -r '.status' 2>/dev/null || echo "error")
+#     msg=$(echo "$resp" | jq -r '.message' 2>/dev/null || echo "无法解析响应")
+    
+#     if [[ "$st" != "success" ]]; then
+#         log "添加失败: $msg"
+#         return 1
+#     fi
+    
+#     log "添加成功: $msg"
+#     return 0
+# }
+
+
+
+# # New function: delete domain
+# delete_domain() {
+#     local domain="$1"
+    
+#     # Validate inputs
+#     if [[ -z "$domain" ]]; then
+#         log "错误: 必须提供域名"
+#         return 1
+#     fi
+    
+#     local json
+#     json=$(jq -n --arg action "delete_domain" --arg d "$domain" \
+#         '{action:$action, domain:$d}')
+    
+#     resp=$(send_request "$json")
+#     if [[ $? -ne 0 ]]; then
+#         return 1
+#     fi
+    
+#     log "服务器响应: $resp"
+    
+#     # 检查 status
+#     local st msg
+#     st=$(echo "$resp" | jq -r '.status' 2>/dev/null || echo "error")
+#     msg=$(echo "$resp" | jq -r '.message' 2>/dev/null || echo "无法解析响应")
+    
+#     if [[ "$st" != "success" ]]; then
+#         log "删除失败: $msg"
+#         return 1
+#     fi
+    
+#     log "删除成功: $msg"
+#     return 0
+# }
+
+# # New function: update domain
+# update_domain() {
+#     local domain="$1"
+#     local ip="$2"
+    
+#     # Validate inputs
+#     if [[ -z "$domain" || -z "$ip" ]]; then
+#         log "错误: 域名和IP都必须提供"
+#         return 1
+#     fi
+    
+#     local json
+#     json=$(jq -n --arg action "update_domain" --arg d "$domain" --arg i "$ip" \
+#         '{action:$action, domain:$d, ip:$i}')
+    
+#     resp=$(send_request "$json")
+#     if [[ $? -ne 0 ]]; then
+#         return 1
+#     fi
+    
+#     log "服务器响应: $resp"
+    
+#     # 检查 status
+#     local st msg
+#     st=$(echo "$resp" | jq -r '.status' 2>/dev/null || echo "error")
+#     msg=$(echo "$resp" | jq -r '.message' 2>/dev/null || echo "无法解析响应")
+    
+#     if [[ "$st" != "success" ]]; then
+#         log "更新失败: $msg"
+#         return 1
+#     fi
+    
+#     log "更新成功: $msg"
+#     return 0
+# }
+
+# # New function: list domains
+# list_domains() {
+#     local json
+#     json=$(jq -n --arg action "list_domains" '{action:$action}')
+    
+#     resp=$(send_request "$json")
+#     if [[ $? -ne 0 ]]; then
+#         return 1
+#     fi
+    
+#     log "服务器响应: $resp"
+    
+#     # 检查 status
+#     local st
+#     st=$(echo "$resp" | jq -r '.status' 2>/dev/null || echo "error")
+    
+#     if [[ "$st" != "success" ]]; then
+#         local msg
+#         msg=$(echo "$resp" | jq -r '.message' 2>/dev/null || echo "无法解析响应")
+#         log "获取域名列表失败: $msg"
+#         return 1
+#     fi
+    
+#     # 显示域名列表
+#     echo "域名列表:"
+#     echo "$resp" | jq -r '.domains[] | "\(.domain) [\(.type)] -> \(.ip)"' 2>/dev/null
+#     return 0
+# }
+
+
+
+
+
+
+
 add_domain() {
     local domain="$1"
     local ip="$2"
@@ -66,27 +230,7 @@ add_domain() {
         return 1
     fi
     
-    # Validate domain format
-    if ! echo "$domain" | grep -qE '^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$'; then
-        log "错误: 无效的域名格式"
-        return 1
-    fi
-    
-    # Validate IP format
-    if [[ "$ip" == *":"* ]]; then
-        # IPv6 validation (basic)
-        if ! echo "$ip" | grep -qE '^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::$|^::1$|^::ffff:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$'; then
-            log "错误: 无效的IPv6格式"
-            return 1
-        fi
-    else
-        # IPv4 validation
-        if ! echo "$ip" | grep -qE '^([0-9]{1,3}\.){3}[0-9]{1,3}$'; then
-            log "错误: 无效的IPv4格式"
-            return 1
-        fi
-    fi
-    
+    # 构建 JSON 请求
     local json
     json=$(jq -n --arg action "add_domain" --arg d "$domain" --arg i "$ip" \
         '{action:$action, domain:$d, ip:$i}')
@@ -96,12 +240,28 @@ add_domain() {
         return 1
     fi
     
-    log "服务器响应: $resp"
+    log "服务器原始响应: $resp"
     
-    # 检查 status
+    # 提取 JSON 纯净部分（去掉日志干扰信息）
+    local json_resp
+    json_resp=$(echo "$resp" | grep -o '{.*}')  # 只提取 JSON 内容
+
+    # 确保 json_resp 不为空
+    if [[ -z "$json_resp" ]]; then
+        log "解析失败，未找到有效 JSON，服务器返回: $resp"
+        return 1
+    fi
+    
+    # 解析 status 和 message
     local st msg
-    st=$(echo "$resp" | jq -r '.status' 2>/dev/null || echo "error")
-    msg=$(echo "$resp" | jq -r '.message' 2>/dev/null || echo "无法解析响应")
+    st=$(echo "$json_resp" | jq -r '.status' 2>/dev/null || echo "无法获取 status")
+    msg=$(echo "$json_resp" | jq -r '.message' 2>/dev/null || echo "无法获取 message")
+    
+    # 如果无法解析，则输出完整响应内容
+    if [[ "$st" == "无法获取 status" || "$msg" == "无法获取 message" ]]; then
+        log "解析失败，服务器返回: $resp"
+        return 1
+    fi
     
     if [[ "$st" != "success" ]]; then
         log "添加失败: $msg"
@@ -131,13 +291,27 @@ delete_domain() {
         return 1
     fi
     
-    log "服务器响应: $resp"
-    
-    # 检查 status
+    log "服务器原始响应: $resp"
+
+    # 提取 JSON 纯净部分
+    local json_resp
+    json_resp=$(echo "$resp" | grep -o '{.*}')  
+
+    if [[ -z "$json_resp" ]]; then
+        log "解析失败，未找到有效 JSON，服务器返回: $resp"
+        return 1
+    fi
+
+    # 解析 status 和 message
     local st msg
-    st=$(echo "$resp" | jq -r '.status' 2>/dev/null || echo "error")
-    msg=$(echo "$resp" | jq -r '.message' 2>/dev/null || echo "无法解析响应")
-    
+    st=$(echo "$json_resp" | jq -r '.status' 2>/dev/null || echo "无法获取 status")
+    msg=$(echo "$json_resp" | jq -r '.message' 2>/dev/null || echo "无法获取 message")
+
+    if [[ "$st" == "无法获取 status" || "$msg" == "无法获取 message" ]]; then
+        log "解析失败，服务器返回: $resp"
+        return 1
+    fi
+
     if [[ "$st" != "success" ]]; then
         log "删除失败: $msg"
         return 1
@@ -167,13 +341,27 @@ update_domain() {
         return 1
     fi
     
-    log "服务器响应: $resp"
-    
-    # 检查 status
+    log "服务器原始响应: $resp"
+
+    # 提取 JSON 纯净部分
+    local json_resp
+    json_resp=$(echo "$resp" | grep -o '{.*}')  
+
+    if [[ -z "$json_resp" ]]; then
+        log "解析失败，未找到有效 JSON，服务器返回: $resp"
+        return 1
+    fi
+
+    # 解析 status 和 message
     local st msg
-    st=$(echo "$resp" | jq -r '.status' 2>/dev/null || echo "error")
-    msg=$(echo "$resp" | jq -r '.message' 2>/dev/null || echo "无法解析响应")
-    
+    st=$(echo "$json_resp" | jq -r '.status' 2>/dev/null || echo "无法获取 status")
+    msg=$(echo "$json_resp" | jq -r '.message' 2>/dev/null || echo "无法获取 message")
+
+    if [[ "$st" == "无法获取 status" || "$msg" == "无法获取 message" ]]; then
+        log "解析失败，服务器返回: $resp"
+        return 1
+    fi
+
     if [[ "$st" != "success" ]]; then
         log "更新失败: $msg"
         return 1
@@ -193,24 +381,40 @@ list_domains() {
         return 1
     fi
     
-    log "服务器响应: $resp"
-    
-    # 检查 status
+    log "服务器原始响应: $resp"
+
+    # 提取 JSON 纯净部分
+    local json_resp
+    json_resp=$(echo "$resp" | grep -o '{.*}')  
+
+    if [[ -z "$json_resp" ]]; then
+        log "解析失败，未找到有效 JSON，服务器返回: $resp"
+        return 1
+    fi
+
+    # 解析 status
     local st
-    st=$(echo "$resp" | jq -r '.status' 2>/dev/null || echo "error")
-    
+    st=$(echo "$json_resp" | jq -r '.status' 2>/dev/null || echo "无法获取 status")
+
     if [[ "$st" != "success" ]]; then
         local msg
-        msg=$(echo "$resp" | jq -r '.message' 2>/dev/null || echo "无法解析响应")
+        msg=$(echo "$json_resp" | jq -r '.message' 2>/dev/null || echo "无法获取 message")
         log "获取域名列表失败: $msg"
         return 1
     fi
-    
+
     # 显示域名列表
     echo "域名列表:"
-    echo "$resp" | jq -r '.domains[] | "\(.domain) [\(.type)] -> \(.ip)"' 2>/dev/null
+    echo "$json_resp" | jq -r '.domains[] | "\(.domain) [\(.type)] -> \(.ip)"' 2>/dev/null
     return 0
 }
+
+
+
+
+
+
+
 
 # Config management
 set_server() {
