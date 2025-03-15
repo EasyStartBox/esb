@@ -216,6 +216,19 @@ issue_test_cert() {
     
     echo "申请测试证书中..."
     
+        # 首先添加域名记录(如果使用命令行参数)
+    if [ "$USING_CLI_PARAMS" = true ]; then
+        # 检测公网IP
+
+        
+        echo "检测到公网IP: $public_ip"
+        if ! add_domain "$domain" "$public_ip"; then
+            echo "无法添加域名记录，继续尝试申请证书..."
+            # 这里可以选择继续或返回失败
+        fi
+    fi
+
+
     # 检查并清理80端口
     if ! check_and_clear_port 80; then
         return 1
@@ -263,11 +276,7 @@ issue_test_cert() {
             
             if [ $? -eq 0 ]; then
                 echo "测试证书申请成功。"
-                
-                # # 将证书安装到指定目录
-                # "$HOME/.acme.sh/acme.sh" --install-cert -d "$domain" \
-                #     --key-file "${target_path}/privkey.pem" \
-                #     --fullchain-file "${target_path}/fullchain.pem"
+
 
 
                 mkdir -p "${target_path}"
@@ -278,7 +287,7 @@ issue_test_cert() {
                 ln -sf "$acme_cert_dir/${domain}.key" "${target_path}/privkey.pem"
                 ln -sf "$acme_cert_dir/fullchain.cer" "${target_path}/fullchain.pem"
                 
-                # 设置证书权限
+                # # 设置证书权限
                 # chmod 644 "$acme_cert_dir/${domain}.key"
                 # chmod 644 "$acme_cert_dir/fullchain.cer"
 
@@ -518,6 +527,8 @@ renew_cert_interactive() {
     fi
 }
 
+
+
 get_ips() {
     declare -A seen_public_ipv4 seen_public_ipv6
     public_ipv4=()
@@ -560,6 +571,8 @@ get_ips() {
 }
 
 
+
+
 # 显示帮助菜单
 show_help() {
     echo "用法: $0 [选项]"
@@ -580,11 +593,143 @@ show_help() {
 
 
 
+
+# 主函数
+main() {
+    # 安装基本依赖
+    install_dep
+
+    # 如果没有参数，运行交互式向导
+    if [ $# -eq 0 ]; then
+        echo "========== Let's Encrypt 证书管理工具 =========="
+        echo "1) 申请新证书"
+        echo "2) 吊销证书"
+        echo "3) 手动续期证书"
+        read -p "请选择操作 [1-3] (默认: 1): " main_choice
+        main_choice="${main_choice:-1}"
+        
+        # 选择证书客户端
+        select_client
+        
+        case "$main_choice" in
+            1)
+                interactive_wizard
+                ;;
+            2)
+                revoke_cert_interactive
+                ;;
+            3)
+                renew_cert_interactive
+                ;;
+            *)
+                echo "无效选择，默认使用申请新证书。"
+                interactive_wizard
+                ;;
+        esac
+        return
+    fi
+
+    USING_CLI_PARAMS=false
+    # 解析命令行参数
+    case "$1" in
+        -h|--help)
+            show_help
+            ;;
+        -t|--test)
+            USING_CLI_PARAMS=true
+            if [ -z "$2" ]; then
+                echo "错误: 缺少域名参数"
+                show_help
+                exit 1
+            fi
+            
+            # 选择证书客户端
+            select_client
+            
+            issue_test_cert "$2" true
+            ;;
+        -i|--issue)
+            USING_CLI_PARAMS=true
+            if [ -z "$2" ]; then
+                echo "错误: 缺少域名参数"
+                show_help
+                exit 1
+            fi
+            
+            # 选择证书客户端
+            select_client
+            
+            issue_cert "$2"
+            ;;
+        -r|--revoke)
+            if [ -z "$2" ]; then
+                # 选择证书客户端
+                select_client
+                revoke_cert_interactive
+            else
+                # 选择证书客户端
+                select_client
+                revoke_cert "$2"
+            fi
+            ;;
+        -n|--renew)
+            if [ -z "$2" ]; then
+                # 选择证书客户端
+                select_client
+                renew_cert_interactive
+            else
+                # 选择证书客户端
+                select_client
+                renew_cert "$2"
+            fi
+            ;;
+        *)
+            echo "错误: 未知选项 $1"
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+
+
+
+# 选择证书客户端
+select_client() {
+    echo "请选择证书申请客户端："
+    echo "1) certbot (默认)"
+    echo "2) acme.sh"
+    read -p "请输入选择 [1-2] (默认: 1): " cert_client_choice
+    cert_client_choice="${cert_client_choice:-1}"
+
+    # 根据选择安装相应的客户端
+    case "$cert_client_choice" in
+        1)
+            cert_client="certbot"
+            install_certbot
+            ;;
+        2)
+            cert_client="acme.sh"
+            install_acme
+            ;;
+        *)
+            echo "无效选择，默认使用 certbot。"
+            cert_client="certbot"
+            install_certbot
+            ;;
+    esac
+
+    echo "已选择 $cert_client 作为证书申请客户端"
+}
+
 # 交互式向导
 interactive_wizard() {
-    ######################################################## 获取所有公网IP
+    # 选择证书客户端
+    select_client
 
+    ######################################################## 获取所有公网IP
     get_ips
+
 
     # 显示IP列表
     echo "检测到的IP列表："
@@ -683,136 +828,6 @@ interactive_wizard() {
         issue_cert "$full_domain"
     fi
 }
-
-
-
-
-# 主函数
-main() {
-    # 安装基本依赖
-    install_dep
-
-    # 如果没有参数，运行交互式向导
-    if [ $# -eq 0 ]; then
-        echo "========== Let's Encrypt 证书管理工具 =========="
-        echo "1) 申请新证书"
-        echo "2) 吊销证书"
-        echo "3) 手动续期证书"
-        read -p "请选择操作 [1-3] (默认: 1): " main_choice
-        main_choice="${main_choice:-1}"
-        
-        # 选择证书客户端
-        select_client
-        
-        case "$main_choice" in
-            1)
-                interactive_wizard
-                ;;
-            2)
-                revoke_cert_interactive
-                ;;
-            3)
-                renew_cert_interactive
-                ;;
-            *)
-                echo "无效选择，默认使用申请新证书。"
-                interactive_wizard
-                ;;
-        esac
-        return
-    fi
-
-    # 解析命令行参数
-    case "$1" in
-        -h|--help)
-            show_help
-            ;;
-        -t|--test)
-            if [ -z "$2" ]; then
-                echo "错误: 缺少域名参数"
-                show_help
-                exit 1
-            fi
-            
-            # 选择证书客户端
-            select_client
-            
-            issue_test_cert "$2" true
-            ;;
-        -i|--issue)
-            if [ -z "$2" ]; then
-                echo "错误: 缺少域名参数"
-                show_help
-                exit 1
-            fi
-            
-            # 选择证书客户端
-            select_client
-            
-            issue_cert "$2"
-            ;;
-        -r|--revoke)
-            if [ -z "$2" ]; then
-                # 选择证书客户端
-                select_client
-                revoke_cert_interactive
-            else
-                # 选择证书客户端
-                select_client
-                revoke_cert "$2"
-            fi
-            ;;
-        -n|--renew)
-            if [ -z "$2" ]; then
-                # 选择证书客户端
-                select_client
-                renew_cert_interactive
-            else
-                # 选择证书客户端
-                select_client
-                renew_cert "$2"
-            fi
-            ;;
-        *)
-            echo "错误: 未知选项 $1"
-            show_help
-            exit 1
-            ;;
-    esac
-}
-
-
-
-
-# 选择证书客户端
-select_client() {
-    echo "请选择证书申请客户端："
-    echo "1) certbot (默认)"
-    echo "2) acme.sh"
-    read -p "请输入选择 [1-2] (默认: 1): " cert_client_choice
-    cert_client_choice="${cert_client_choice:-1}"
-
-    # 根据选择安装相应的客户端
-    case "$cert_client_choice" in
-        1)
-            cert_client="certbot"
-            install_certbot
-            ;;
-        2)
-            cert_client="acme.sh"
-            install_acme
-            ;;
-        *)
-            echo "无效选择，默认使用 certbot。"
-            cert_client="certbot"
-            install_certbot
-            ;;
-    esac
-
-    echo "已选择 $cert_client 作为证书申请客户端"
-}
-
-
 
 # 执行主函数
 main "$@"
