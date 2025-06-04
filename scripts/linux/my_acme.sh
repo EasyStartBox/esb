@@ -27,7 +27,8 @@ show_help() {
     echo "选项:"
     echo "  -h, --help     显示帮助信息"
     echo "  -t, --test     申请测试证书"
-    echo "  -p, --path     指定证书保存路径 (默认: /etc/ssl/certs/\$domain)"
+    # echo "  -p, --path     指定证书保存路径 (默认: /etc/ssl/certs/\$domain)"
+    echo "  -p, --path     指定证书保存路径 (默认: /root/certs/\$domain)"
     echo ""
     echo "示例:"
     echo "  $0 example.com"
@@ -79,7 +80,8 @@ parse_args() {
 
     # 设置默认证书路径
     if [ -z "$target_path" ]; then
-        target_path="/etc/ssl/certs/$domain"
+        # target_path="/etc/ssl/certs/$domain"
+        target_path="/root/certs/$domain"
     fi
 }
 
